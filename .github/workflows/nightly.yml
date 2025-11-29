@@ -16,10 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     container: skylyrac/blocksds:slim-v1.13.1
     name: Build Pico Launcher
-    env:
-      DOTNET_CLI_TELEMETRY_OPTOUT: 1
-      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
