@@ -1,15 +1,8 @@
-name: Build Pico Launcher
+name: Build Pico Launcher release
 
 on:
-  push:
-    branches: ["develop"]
-    paths-ignore:
-      - 'README.md'
-  pull_request:
-    branches: ["develop"]
-    paths-ignore:
-      - 'README.md'
-  workflow_dispatch:
+  release:
+    types: [published]
 
 jobs:
   pico_launcher:
@@ -21,6 +14,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
+      - name: Install zip
+        run:
+          apt-get update && apt-get -y install zip
       - name: Run build script
         run: |
           make
@@ -31,3 +27,13 @@ jobs:
             _pico/
             LAUNCHER.nds
           name: Pico_Launcher
+      - name: Package for release
+        run: |
+          mkdir Pico_Launcher
+          cp -r _pico/ LAUNCHER.nds Pico_Launcher
+          cd Pico_Launcher && zip -r $PWD.zip *
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            Pico_Launcher.zip
