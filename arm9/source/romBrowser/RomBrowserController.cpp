@@ -6,6 +6,7 @@
 #include "FileType/FileType.h"
 #include "SdFolderFactory.h"
 #include "services/settings/IAppSettingsService.h"
+#include "cheats/UsrCheatRepositoryFactory.h"
 #include "RomBrowserController.h"
 
 RomBrowserController::RomBrowserController(
@@ -23,14 +24,14 @@ void RomBrowserController::NavigateToPath(const TCHAR* name)
 
 void RomBrowserController::LaunchFile(const FileInfo& fileInfo)
 {
-    _launchFileInfo = FileInfo(fileInfo);
+    _triggerFileInfo = FileInfo(fileInfo);
     _stateMachine.Fire(RomBrowserStateTrigger::Launch);
 }
 
-void RomBrowserController::ShowGameInfo()
+void RomBrowserController::ShowGameInfo(const FileInfo& fileInfo)
 {
-    // Currently disabled, as the game info panel is not complete
-    // _stateMachine.Fire(RomBrowserStateTrigger::ShowGameInfo);
+    _triggerFileInfo = FileInfo(fileInfo);
+    _stateMachine.Fire(RomBrowserStateTrigger::ShowGameInfo);
 }
 
 void RomBrowserController::HideGameInfo()
@@ -140,6 +141,10 @@ void RomBrowserController::HandleNavigateTrigger()
             _coverRepository = std::make_unique<CoverRepository>();
             _coverRepository->Initialize();
         }
+        if (!_cheatRepository)
+        {
+            _cheatRepository = UsrCheatRepositoryFactory().FromUsrCheatDat("/_pico/usrcheat.dat");
+        }
 
         u64 startTick = gTickCounter.GetValue();
         _navigateFileName = nullptr;
@@ -182,7 +187,7 @@ void RomBrowserController::HandleLaunchTrigger()
         int idx = strlcat(_navigatePath, "/", sizeof(_navigatePath));
         if (_navigatePath[idx - 2] == '/')
             _navigatePath[idx - 1] = 0;
-        strlcat(_navigatePath, _launchFileInfo.GetFileName(), sizeof(_navigatePath));
+        strlcat(_navigatePath, _triggerFileInfo.GetFileName(), sizeof(_navigatePath));
         _appSettingsService->GetAppSettings().lastUsedFilePath = _navigatePath;
         _appSettingsService->Save();
 
@@ -190,7 +195,7 @@ void RomBrowserController::HandleLaunchTrigger()
         loadParams->savePath[0] = 0;
         loadParams->arguments[0] = 0;
         loadParams->argumentsLength = 0;
-        if (_launchFileInfo.GetFileType()->TrySetLaunchParameters(loadParams, _navigatePath))
+        if (_triggerFileInfo.GetFileType()->TrySetLaunchParameters(loadParams, _navigatePath))
         {
             gProcessManager.Goto<PicoLoaderProcess>();
         }
