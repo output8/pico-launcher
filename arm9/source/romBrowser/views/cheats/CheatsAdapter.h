@@ -29,19 +29,16 @@ public:
 
     View* CreateView() const override
     {
-        LOG_DEBUG("CheatsAdapter::CreateView\n");
         return new CheatListItemView(_vramOffsets, _materialColorScheme, _fontRepository);
     }
 
     void DestroyView(View* view) const override
     {
-        LOG_DEBUG("CheatsAdapter::DestroyView\n");
         delete (CheatListItemView*)view;
     }
 
     void BindView(View* view, int index) const override
     {
-        LOG_DEBUG("CheatsAdapter::BindView\n");
         auto listItemView = static_cast<CheatListItemView*>(view);
         u32 numberOfCategories = 0;
         auto categories = _cheatCategory->GetCategories(numberOfCategories);
@@ -60,7 +57,7 @@ public:
 
     void ReleaseView(View* view, int index) const override
     {
-        LOG_DEBUG("CheatsAdapter::ReleaseView\n");
+        // Nothing to do
     }
 
 private:

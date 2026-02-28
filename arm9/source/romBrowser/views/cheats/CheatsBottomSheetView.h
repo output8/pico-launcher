@@ -44,7 +44,7 @@ private:
     CheatsAdapter* _cheatsAdapter = nullptr;
     const MaterialColorScheme* _materialColorScheme;
     const IFontRepository* _fontRepository;
-    IVramManager* _objVramManager;
+    IVramManager* _objVramManager = nullptr;
     FocusManager* _focusManager;
     CheatListItemView::VramOffsets _vramOffsets;
     u32 _savedVramState = 0;

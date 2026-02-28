@@ -7,6 +7,7 @@
 #include "SdFolderFactory.h"
 #include "services/settings/IAppSettingsService.h"
 #include "cheats/UsrCheatRepositoryFactory.h"
+#include "cheats/EmptyCheatRepository.h"
 #include "cheats/PicoLoaderCheatDataFactory.h"
 #include "RomBrowserController.h"
 
@@ -145,6 +146,11 @@ void RomBrowserController::HandleNavigateTrigger()
         if (!_cheatRepository)
         {
             _cheatRepository = UsrCheatRepositoryFactory().FromUsrCheatDat("/_pico/usrcheat.dat");
+            if (!_cheatRepository)
+            {
+                // When usrcheat.dat is not found or cannot be read use a dummy empty cheat repository
+                _cheatRepository = std::make_unique<EmptyCheatRepository>();
+            }
         }
 
         u64 startTick = gTickCounter.GetValue();

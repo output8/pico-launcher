@@ -67,7 +67,7 @@ void CheatsBottomSheetView::Update()
     _cheatListRecycler->SetPosition(LIST_X, _position.y + LIST_Y);
     if (_viewModel->GetState() == CheatsViewModel::State::DisplayCheats)
     {
-        if (_cheatsAdapter == nullptr)
+        if (_cheatsAdapter == nullptr && _objVramManager != nullptr)
         {
             _cheatsAdapter = new CheatsAdapter(
                 _viewModel->GetCurrentCheatCategory(), _materialColorScheme, _fontRepository, _vramOffsets);
