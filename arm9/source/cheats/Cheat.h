@@ -7,22 +7,34 @@ public:
     Cheat()
         : _cheatData(nullptr), _cheatDataLength(0) { }
 
-    Cheat(const char* name, const char* description, bool isCheatActive, const void* cheatData, u32 cheatDataLength)
-        : CheatTreeItem(name, description), _isCheatActive(isCheatActive)
+    Cheat(const char* name, const char* description, u32* flagsPointer, const void* cheatData, u32 cheatDataLength)
+        : CheatTreeItem(name, description), _flagsPointer(flagsPointer)
         , _cheatData(cheatData), _cheatDataLength(cheatDataLength) { }
+
+    const void* GetCheatData(u32& cheatDataLength) const
+    {
+        cheatDataLength = _cheatDataLength;
+        return _cheatData;
+    }
 
     bool GetIsCheatActive() const
     {
-        return _isCheatActive;
+        return ((*_flagsPointer >> 24) & 1) == 1;
     }
 
-    void SetIsCheatActive(bool isCheatActive)
+    void SetIsCheatActive(bool isCheatActive) const
     {
-        _isCheatActive = isCheatActive;
+        u32 flags = *_flagsPointer;
+        flags &= ~(1 << 24);
+        if (isCheatActive)
+        {
+            flags |= 1 << 24;
+        }
+        *_flagsPointer = flags;
     }
 
 private:
-    bool _isCheatActive;
+    u32* _flagsPointer;
     const void* _cheatData;
     u32 _cheatDataLength;
 };

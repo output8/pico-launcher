@@ -74,4 +74,7 @@ private:
     void HandleFolderLoadDoneTrigger();
     void HandleLaunchTrigger();
     void HandleChangeDisplayModeTrigger();
+    void UpdateLastUsedFilepath();
+    void SetPicoLoaderParams() const;
+    void LoadCheats() const;
 };

@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <memory>
 #include "core/task/TaskQueue.h"
 #include "cheats/GameCheats.h"
@@ -18,13 +19,15 @@ public:
 
     CheatsViewModel(const FileInfo& romFileInfo, IRomBrowserController* romBrowserController);
 
-    void Close()
-    {
-        _romBrowserController->HideGameInfo();
-    }
+    void ItemActivated();
+    void Back();
+    void Close();
 
     State GetState() const { return _state; }
-    const GameCheats* GetCheats() const { return _cheats.get(); }
+    const ICheatCategory* GetCurrentCheatCategory() const { return _categoryStack[_categoryStackLevel]; }
+
+    constexpr int GetSelectedItem() const { return _selectedItem; }
+    void SetSelectedItem(int selectedItem) { _selectedItem = selectedItem; }
 
 private:
     FileInfo _romFileInfo;
@@ -32,4 +35,8 @@ private:
     QueueTask<void> _loadCheatsTask;
     std::unique_ptr<GameCheats> _cheats;
     State _state = State::Loading;
+    int _selectedItem = -1;
+    bool _changed = false;
+    u32 _categoryStackLevel = 0;
+    std::array<const ICheatCategory*, 8> _categoryStack;
 };

@@ -3,6 +3,68 @@
 #include <string.h>
 #include "UsrCheatRepository.h"
 
+#define CRCPOLY 0xEDB88320
+
+static u32 crc32(const void* buffer, u32 length)
+{
+    u32 crc = ~0u;
+    const u8* p = (u8*)buffer;
+    while (length--)
+    {
+        crc ^= *p++;
+        for (int i = 0; i < 8; i++)
+        {
+            crc = (crc >> 1) ^ ((crc & 1) ? CRCPOLY : 0);
+        }
+    }
+
+    return crc;
+}
+
+std::unique_ptr<GameCheats> UsrCheatRepository::GetCheatsForGame(const FastFileRef& romFile) const
+{
+    auto file = std::make_unique<File>();
+    file->Open(romFile, FA_READ);
+    auto headerBuffer = std::make_unique_for_overwrite<u8[]>(512);
+    if (!file->ReadExact(headerBuffer.get(), 512))
+    {
+        LOG_ERROR("Could not read rom header\n");
+        return nullptr;
+    }
+    file->Close();
+
+    u32 gameCode = *(u32*)(headerBuffer.get() + 0xC);
+    u32 crc = crc32(headerBuffer.get(), 512);
+
+    headerBuffer.reset();
+
+    return GetCheatsForGame(gameCode, crc);
+}
+
+void UsrCheatRepository::UpdateEnabledCheatsForGame(const std::unique_ptr<GameCheats>& cheats) const
+{
+    u32 cheatDataLength = 0;
+    auto cheatData = cheats->GetCheatData(cheatDataLength);
+    if (_usrCheatFile->Seek(cheats->GetFileOffset()) != FR_OK)
+    {
+        LOG_ERROR("Failed to seek to cheat data\n");
+        return;
+    }
+
+    u32 bytesWritten = 0;
+    if (_usrCheatFile->Write(cheatData, cheatDataLength, bytesWritten) != FR_OK ||
+        bytesWritten != cheatDataLength)
+    {
+        LOG_ERROR("Failed to write cheat data\n");
+        return;
+    }
+
+    if (_usrCheatFile->Sync() != FR_OK)
+    {
+        LOG_ERROR("Failed to flush cheat data\n");
+    }
+}
+
 std::unique_ptr<GameCheats> UsrCheatRepository::GetCheatsForGame(u32 gameCode, u32 headerCrc32) const
 {
     auto index = FindIndex(gameCode, headerCrc32);
@@ -14,13 +76,14 @@ std::unique_ptr<GameCheats> UsrCheatRepository::GetCheatsForGame(u32 gameCode, u
         return nullptr;
     }
 
-    auto cheatData = std::make_unique_for_overwrite<u8[]>(index->padding); // padding was set to the size in UsrCheatRepositoryFactory
+    const u32 cheatDataLength = index->padding; // padding was set to the size in UsrCheatRepositoryFactory
+    auto cheatData = std::make_unique_for_overwrite<u8[]>(cheatDataLength);
     if (_usrCheatFile->Seek(index->offset) != FR_OK)
     {
         LOG_ERROR("Failed to seek to cheat data\n");
         return nullptr;
     }
-    if (!_usrCheatFile->ReadExact(cheatData.get(), index->padding))
+    if (!_usrCheatFile->ReadExact(cheatData.get(), cheatDataLength))
     {
         LOG_ERROR("Failed to read cheat data\n");
         return nullptr;
@@ -38,7 +101,7 @@ std::unique_ptr<GameCheats> UsrCheatRepository::GetCheatsForGame(u32 gameCode, u
     // flags
     u32 flags = *(u32*)ptr;
     u32 totalNumberOfItems = flags & 0x0FFFFFFF;
-    u32 gameActive = flags >> 28;
+    // u32 gameActive = flags >> 28;
     ptr += 4;
 
     // master codes
@@ -50,7 +113,7 @@ std::unique_ptr<GameCheats> UsrCheatRepository::GetCheatsForGame(u32 gameCode, u
     auto cheats = (Cheat*)malloc(totalNumberOfItems * sizeof(Cheat));
     u32 cheatCount = 0;
 
-    while (ptr < cheatData.get() + index->padding)
+    while (ptr < cheatData.get() + cheatDataLength)
     {
         u32 itemFlags = *(u32*)ptr;
         bool isCategory = ((itemFlags >> 28) & 1) == 1;
@@ -69,7 +132,8 @@ std::unique_ptr<GameCheats> UsrCheatRepository::GetCheatsForGame(u32 gameCode, u
     categories = (CheatCategory*)realloc(categories, categoryCount * sizeof(CheatCategory));
     cheats = (Cheat*)realloc(cheats, cheatCount * sizeof(Cheat));
 
-    return std::make_unique<GameCheats>(std::move(cheatData), gameName, categories, categoryCount, cheats, cheatCount);
+    return std::make_unique<GameCheats>(
+        std::move(cheatData), cheatDataLength, index->offset, gameName, categories, categoryCount, cheats, cheatCount);
 }
 
 const usr_cheat_index_entry_t* UsrCheatRepository::FindIndex(u32 gameCode, u32 headerCrc32) const
@@ -142,15 +206,14 @@ void UsrCheatRepository::ParseCategory(CheatCategory& category, u8*& ptr) const
     categories = (CheatCategory*)realloc(categories, categoryCount * sizeof(CheatCategory));
     cheats = (Cheat*)realloc(cheats, cheatCount * sizeof(Cheat));
 
-    category = CheatCategory(itemName, itemDescription, isMaxOneCheatActive, categories, categoryCount, cheats, cheatCount);
+    new (&category) CheatCategory (itemName, itemDescription, isMaxOneCheatActive, categories, categoryCount, cheats, cheatCount);
 }
 
 void UsrCheatRepository::ParseCheat(Cheat& cheat, u8*& ptr) const
 {
     // flags
-    u32 itemFlags = *(u32*)ptr;
+    u32* flagsPtr = (u32*)ptr;
     ptr += 4;
-    bool isCheatActive = ((itemFlags >> 24) & 1) == 1;
 
     // item name
     const char* itemName = (const char*)ptr;
@@ -167,7 +230,7 @@ void UsrCheatRepository::ParseCheat(Cheat& cheat, u8*& ptr) const
     u32 numberOfCodeWords = *(u32*)ptr;
     ptr += 4;
 
-    cheat = Cheat(itemName, itemDescription, isCheatActive, ptr, numberOfCodeWords * 4);
+    new (&cheat) Cheat(itemName, itemDescription, flagsPtr, ptr, numberOfCodeWords * 4);
 
     // code
     ptr += numberOfCodeWords * 4;

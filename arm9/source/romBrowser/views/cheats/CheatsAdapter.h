@@ -7,30 +7,30 @@
 class CheatsAdapter : public RecyclerAdapter
 {
 public:
-    CheatsAdapter(const CheatCategory* categories, u32 numberOfCategories, const Cheat* cheats, u32 numberOfCheats,
-        const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository,
-        u32 folderIconVramOffset, u32 checkboxUncheckedIconVramOffset, u32 checkboxCheckedIconVramOffset)
-        : _categories(categories), _numberOfCategories(numberOfCategories), _cheats(cheats), _numberOfCheats(numberOfCheats)
-        , _materialColorScheme(materialColorScheme), _fontRepository(fontRepository)
-        , _folderIconVramOffset(folderIconVramOffset)
-        , _checkboxUncheckedIconVramOffset(checkboxUncheckedIconVramOffset)
-        , _checkboxCheckedIconVramOffset(checkboxCheckedIconVramOffset) { }
+    CheatsAdapter(const ICheatCategory* cheatCategory, const MaterialColorScheme* materialColorScheme,
+        const IFontRepository* fontRepository, const CheatListItemView::VramOffsets& vramOffsets)
+        : _cheatCategory(cheatCategory), _materialColorScheme(materialColorScheme)
+        , _fontRepository(fontRepository), _vramOffsets(vramOffsets) { }
 
     u32 GetItemCount() const override
     {
-        return _numberOfCategories + _numberOfCheats;
+        u32 numberOfCategories = 0;
+        _cheatCategory->GetCategories(numberOfCategories);
+        u32 numberOfCheats = 0;
+        _cheatCategory->GetCheats(numberOfCheats);
+        return numberOfCategories + numberOfCheats;
     }
 
     void GetViewSize(int& width, int& height) const override
     {
-        width = 256;
+        width = 224;
         height = 24;
     }
 
     View* CreateView() const override
     {
         LOG_DEBUG("CheatsAdapter::CreateView\n");
-        return new CheatListItemView(_materialColorScheme, _fontRepository);
+        return new CheatListItemView(_vramOffsets, _materialColorScheme, _fontRepository);
     }
 
     void DestroyView(View* view) const override
@@ -43,16 +43,18 @@ public:
     {
         LOG_DEBUG("CheatsAdapter::BindView\n");
         auto listItemView = static_cast<CheatListItemView*>(view);
-        if ((u32)index < _numberOfCategories)
+        u32 numberOfCategories = 0;
+        auto categories = _cheatCategory->GetCategories(numberOfCategories);
+        if ((u32)index < numberOfCategories)
         {
-            listItemView->SetName(_categories[index].GetName());
-            listItemView->SetIcon(_folderIconVramOffset);
+            listItemView->SetCategory(&categories[index]);
         }
         else
         {
-            index -= _numberOfCategories;
-            listItemView->SetName(_cheats[index].GetName());
-            listItemView->SetIcon(_cheats[index].GetIsCheatActive() ? _checkboxCheckedIconVramOffset : _checkboxUncheckedIconVramOffset);
+            index -= numberOfCategories;
+            u32 numberOfCheats = 0;
+            auto cheats = _cheatCategory->GetCheats(numberOfCheats);
+            listItemView->SetCheat(&cheats[index]);
         }
     }
 
@@ -62,13 +64,8 @@ public:
     }
 
 private:
-    const CheatCategory* _categories;
-    u32 _numberOfCategories;
-    const Cheat* _cheats;
-    u32 _numberOfCheats;
+    const ICheatCategory* _cheatCategory;
     const MaterialColorScheme* _materialColorScheme;
     const IFontRepository* _fontRepository;
-    u32 _folderIconVramOffset;
-    u32 _checkboxUncheckedIconVramOffset;
-    u32 _checkboxCheckedIconVramOffset;
+    CheatListItemView::VramOffsets _vramOffsets;
 };

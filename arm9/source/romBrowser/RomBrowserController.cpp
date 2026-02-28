@@ -7,6 +7,7 @@
 #include "SdFolderFactory.h"
 #include "services/settings/IAppSettingsService.h"
 #include "cheats/UsrCheatRepositoryFactory.h"
+#include "cheats/PicoLoaderCheatDataFactory.h"
 #include "RomBrowserController.h"
 
 RomBrowserController::RomBrowserController(
@@ -183,26 +184,9 @@ void RomBrowserController::HandleLaunchTrigger()
     LOG_DEBUG("RomBrowserStateTrigger::Launch\n");
     _ioTaskQueue->Enqueue([this] (const vu8& cancelRequested)
     {
-        f_getcwd(_navigatePath, sizeof(_navigatePath) / sizeof(_navigatePath[0]));
-        int idx = strlcat(_navigatePath, "/", sizeof(_navigatePath));
-        if (_navigatePath[idx - 2] == '/')
-            _navigatePath[idx - 1] = 0;
-        strlcat(_navigatePath, _triggerFileInfo.GetFileName(), sizeof(_navigatePath));
-        _appSettingsService->GetAppSettings().lastUsedFilePath = _navigatePath;
-        _appSettingsService->Save();
-
-        auto loadParams = pload_getLoadParams();
-        loadParams->savePath[0] = 0;
-        loadParams->arguments[0] = 0;
-        loadParams->argumentsLength = 0;
-        if (_triggerFileInfo.GetFileType()->TrySetLaunchParameters(loadParams, _navigatePath))
-        {
-            gProcessManager.Goto<PicoLoaderProcess>();
-        }
-        else
-        {
-            LOG_FATAL("Failed to set launch parameters.\n");
-        }
+        UpdateLastUsedFilepath();
+        SetPicoLoaderParams();
+        LoadCheats();
         return TaskResult<void>::Completed();
     });
 }
@@ -211,4 +195,40 @@ void RomBrowserController::HandleChangeDisplayModeTrigger()
 {
     LOG_DEBUG("RomBrowserStateTrigger::ChangeDisplayMode\n");
     _romBrowserViewModel = SharedPtr(new RomBrowserViewModel(this));
+}
+
+void RomBrowserController::UpdateLastUsedFilepath()
+{
+    f_getcwd(_navigatePath, sizeof(_navigatePath) / sizeof(_navigatePath[0]));
+    int idx = strlcat(_navigatePath, "/", sizeof(_navigatePath));
+    if (_navigatePath[idx - 2] == '/')
+    {
+        _navigatePath[idx - 1] = 0;
+    }
+    strlcat(_navigatePath, _triggerFileInfo.GetFileName(), sizeof(_navigatePath));
+    _appSettingsService->GetAppSettings().lastUsedFilePath = _navigatePath;
+    _appSettingsService->Save();
+}
+
+void RomBrowserController::SetPicoLoaderParams() const
+{
+    auto loadParams = pload_getLoadParams();
+    loadParams->savePath[0] = 0;
+    loadParams->arguments[0] = 0;
+    loadParams->argumentsLength = 0;
+    if (_triggerFileInfo.GetFileType()->TrySetLaunchParameters(loadParams, _navigatePath))
+    {
+        gProcessManager.Goto<PicoLoaderProcess>();
+    }
+    else
+    {
+        LOG_FATAL("Failed to set launch parameters.\n");
+    }
+}
+
+void RomBrowserController::LoadCheats() const
+{
+    auto cheats = _cheatRepository->GetCheatsForGame(_triggerFileInfo.GetFastFileRef());
+    auto cheatData = PicoLoaderCheatDataFactory().CreateCheatData(cheats);
+    pload_setCheatData(cheatData);
 }

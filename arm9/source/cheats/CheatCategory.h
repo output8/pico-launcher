@@ -2,8 +2,9 @@
 #include <memory>
 #include "CheatTreeItem.h"
 #include "Cheat.h"
+#include "ICheatCategory.h"
 
-class CheatCategory : public CheatTreeItem
+class CheatCategory : public CheatTreeItem, public ICheatCategory
 {
 public:
     CheatCategory()
@@ -55,18 +56,18 @@ public:
         }
     }
 
-    bool GetIsMaxOneCheatActive() const
+    bool GetIsMaxOneCheatActive() const override
     {
         return _isMaxOneCheatActive;
     }
 
-    const CheatCategory* GetSubCategories(u32& numberOfSubCategories) const
+    const CheatCategory* GetCategories(u32& numberOfCategories) const override
     {
-        numberOfSubCategories = _numberOfSubCategories;
+        numberOfCategories = _numberOfSubCategories;
         return _subCategories;
     }
 
-    const Cheat* GetCheats(u32& numberOfCheats) const
+    const Cheat* GetCheats(u32& numberOfCheats) const override
     {
         numberOfCheats = _numberOfCheats;
         return _cheats;
