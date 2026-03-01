@@ -19,8 +19,13 @@
 #define NO_CHEATS_FOUND_LABEL_X     20
 #define NO_CHEATS_FOUND_LABEL_Y     36
 
+#define DESCRIPTION_LABEL_X         16
+#define DESCRIPTION_LABEL_Y         147
+
 #define LIST_X                      16
 #define LIST_Y                      36
+#define LIST_WIDTH                  224
+#define LIST_HEIGHT                 /*124*/108
 
 CheatsBottomSheetView::CheatsBottomSheetView(std::unique_ptr<CheatsViewModel> viewModel,
     const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository,
@@ -28,15 +33,20 @@ CheatsBottomSheetView::CheatsBottomSheetView(std::unique_ptr<CheatsViewModel> vi
     : _viewModel(std::move(viewModel))
     , _titleLabel(64, 16, 25, fontRepository->GetFont(FontType::Medium11))
     , _noCheatsFoundLabel(96, 16, 25, fontRepository->GetFont(FontType::Regular10))
-    , _cheatListRecycler(std::make_unique<RecyclerView>(LIST_X, LIST_Y, 224, 124, RecyclerView::Mode::VerticalList))
+    , _descriptionLabel(224, 16, 256, fontRepository->GetFont(FontType::Medium7_5))
+    , _cheatListRecycler(std::make_unique<RecyclerView>(
+        LIST_X, LIST_Y, LIST_WIDTH, LIST_HEIGHT, RecyclerView::Mode::VerticalList))
     , _materialColorScheme(materialColorScheme)
     , _fontRepository(fontRepository)
     , _focusManager(focusManager)
 {
     _titleLabel.SetText(u"Cheats");
     _noCheatsFoundLabel.SetText(u"No cheats found.");
+    _descriptionLabel.SetEllipsisStyle(LabelView::EllipsisStyle::Marquee);
+    _descriptionLabel.SetText("");
     AddChildTail(&_titleLabel);
     AddChildTail(&_noCheatsFoundLabel);
+    AddChildTail(&_descriptionLabel);
     AddChildTail(_cheatListRecycler.get());
 }
 
@@ -71,6 +81,7 @@ void CheatsBottomSheetView::Update()
 {
     _titleLabel.SetPosition(TITLE_LABEL_X, _position.y + TITLE_LABEL_Y);
     _noCheatsFoundLabel.SetPosition(NO_CHEATS_FOUND_LABEL_X, _position.y + NO_CHEATS_FOUND_LABEL_Y);
+    _descriptionLabel.SetPosition(DESCRIPTION_LABEL_X, _position.y + DESCRIPTION_LABEL_Y);
     _cheatListRecycler->SetPosition(LIST_X, _position.y + LIST_Y);
     if (_viewModel->GetState() == CheatsViewModel::State::DisplayCheats)
     {
@@ -88,7 +99,12 @@ void CheatsBottomSheetView::Update()
         }
     }
     BottomSheetView::Update();
-    _viewModel->SetSelectedItem(_cheatListRecycler->GetSelectedItem());
+    int selectedItem = _cheatListRecycler->GetSelectedItem();
+    if (selectedItem != _viewModel->GetSelectedItem())
+    {
+        _viewModel->SetSelectedItem(selectedItem);
+        UpdateDescriptionText();
+    }
 }
 
 void CheatsBottomSheetView::Draw(GraphicsContext& graphicsContext)
@@ -102,10 +118,11 @@ void CheatsBottomSheetView::Draw(GraphicsContext& graphicsContext)
         graphicsContext.SetClipArea(GetBounds());
 
         auto backColor = _materialColorScheme->GetColor(md::sys::color::surfaceContainerLow);
+        auto maskOam = graphicsContext.GetOamManager().AllocOams(8);
+        // Top
         u32 maskPaletteRow = graphicsContext.GetPaletteManager().AllocRow(
             GradientPalette(backColor, backColor),
             _position.y + LIST_Y - 24, _position.y + LIST_Y);
-        auto maskOam = graphicsContext.GetOamManager().AllocOams(4);
         OamBuilder::OamWithSize<64, 32>(LIST_X, _position.y + LIST_Y - 24, _vramOffsets.cheatSelectorVramOffset >> 7)
             .WithPalette16(maskPaletteRow)
             .WithPriority(graphicsContext.GetPriority())
@@ -123,6 +140,30 @@ void CheatsBottomSheetView::Draw(GraphicsContext& graphicsContext)
             .WithPriority(graphicsContext.GetPriority())
             .Build(maskOam[3]);
 
+        // Bottom
+        if (graphicsContext.IsVisible(Rectangle(LIST_X, _position.y + LIST_Y + LIST_HEIGHT, 224, 24)))
+        {
+            maskPaletteRow = graphicsContext.GetPaletteManager().AllocRow(
+                GradientPalette(backColor, backColor),
+                _position.y + LIST_Y + LIST_HEIGHT, 192);
+            OamBuilder::OamWithSize<64, 32>(LIST_X, _position.y + LIST_Y + LIST_HEIGHT, _vramOffsets.cheatSelectorVramOffset >> 7)
+                .WithPalette16(maskPaletteRow)
+                .WithPriority(graphicsContext.GetPriority())
+                .Build(maskOam[4]);
+            OamBuilder::OamWithSize<64, 32>(LIST_X + 64, _position.y + LIST_Y + LIST_HEIGHT, _vramOffsets.cheatSelectorVramOffset >> 7)
+                .WithPalette16(maskPaletteRow)
+                .WithPriority(graphicsContext.GetPriority())
+                .Build(maskOam[5]);
+            OamBuilder::OamWithSize<64, 32>(LIST_X + 2 * 64, _position.y + LIST_Y + LIST_HEIGHT, _vramOffsets.cheatSelectorVramOffset >> 7)
+                .WithPalette16(maskPaletteRow)
+                .WithPriority(graphicsContext.GetPriority())
+                .Build(maskOam[6]);
+            OamBuilder::OamWithSize<64, 32>(LIST_X + 2 * 64 + 32, _position.y + LIST_Y + LIST_HEIGHT, _vramOffsets.cheatSelectorVramOffset >> 7)
+                .WithPalette16(maskPaletteRow)
+                .WithPriority(graphicsContext.GetPriority())
+                .Build(maskOam[7]);
+        }
+
         _titleLabel.SetBackgroundColor(backColor);
         _titleLabel.SetForegroundColor(_materialColorScheme->onSurface);
         _titleLabel.Draw(graphicsContext);
@@ -133,6 +174,10 @@ void CheatsBottomSheetView::Draw(GraphicsContext& graphicsContext)
             _noCheatsFoundLabel.SetForegroundColor(_materialColorScheme->onSurface);
             _noCheatsFoundLabel.Draw(graphicsContext);
         }
+
+        _descriptionLabel.SetBackgroundColor(backColor);
+        _descriptionLabel.SetForegroundColor(_materialColorScheme->onSurfaceVariant);
+        _descriptionLabel.Draw(graphicsContext);
     }
     graphicsContext.SetPriority(oldPrio);
     graphicsContext.ResetClipArea();
@@ -185,4 +230,34 @@ void CheatsBottomSheetView::UpdateCheatList()
 
     _cheatListRecycler->InitVram(VramContext(nullptr, _objVramManager, nullptr, nullptr));
     _cheatListRecycler->Focus(*_focusManager);
+    UpdateDescriptionText();
+}
+
+void CheatsBottomSheetView::UpdateDescriptionText()
+{
+    int selectedItem = _viewModel->GetSelectedItem();
+    if (selectedItem < 0)
+    {
+        _descriptionLabel.SetText("");
+    }
+    else
+    {
+        auto cheatCategory = _viewModel->GetCurrentCheatCategory();
+        u32 numberOfCategories = 0;
+        auto categories = cheatCategory->GetCategories(numberOfCategories);
+        u32 numberOfCheats = 0;
+        auto cheats = cheatCategory->GetCheats(numberOfCheats);
+        if ((u32)selectedItem < numberOfCategories)
+        {
+            _descriptionLabel.SetText(categories[selectedItem].GetDescription());
+        }
+        else if ((u32)selectedItem < numberOfCategories + numberOfCheats)
+        {
+            _descriptionLabel.SetText(cheats[selectedItem - numberOfCategories].GetDescription());
+        }
+        else
+        {
+            _descriptionLabel.SetText("");
+        }
+    }
 }

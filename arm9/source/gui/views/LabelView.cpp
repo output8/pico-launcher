@@ -174,16 +174,21 @@ void LabelView::UpdateMarquee()
                 {
                     _marqueeState = MarqueeState::Moving;
                     _marqueeOffset = 0;
+                    _marqueeCounter = MARQUEE_STEP_FRAMES;
                 }
                 break;
             }
             case MarqueeState::Moving:
             {
-                _marqueeOffset++;
-                if (_newStringWidth - _marqueeOffset < _width)
+                if (--_marqueeCounter == 0)
                 {
-                    _marqueeState = MarqueeState::EndWait;
-                    _marqueeCounter = MARQUEE_END_FRAMES;
+                    _marqueeCounter = MARQUEE_STEP_FRAMES;
+                    _marqueeOffset++;
+                    if (_newStringWidth - _marqueeOffset < _width)
+                    {
+                        _marqueeState = MarqueeState::EndWait;
+                        _marqueeCounter = MARQUEE_END_FRAMES;
+                    }
                 }
                 break;
             }

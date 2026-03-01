@@ -41,6 +41,7 @@ private:
     std::unique_ptr<CheatsViewModel> _viewModel;
     Label2DView _titleLabel;
     Label2DView _noCheatsFoundLabel;
+    Label2DView _descriptionLabel;
     std::unique_ptr<RecyclerView> _cheatListRecycler;
     CheatsAdapter* _cheatsAdapter = nullptr;
     const MaterialColorScheme* _materialColorScheme;
@@ -51,4 +52,5 @@ private:
     u32 _savedVramState = 0;
 
     void UpdateCheatList();
+    void UpdateDescriptionText();
 };
