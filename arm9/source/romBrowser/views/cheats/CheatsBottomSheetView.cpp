@@ -13,24 +13,30 @@
 #include "gui/DescendingStackVramManager.h"
 #include "CheatsBottomSheetView.h"
 
-#define TITLE_LABEL_X       20
-#define TITLE_LABEL_Y       16
+#define TITLE_LABEL_X               20
+#define TITLE_LABEL_Y               16
 
-#define LIST_X              16
-#define LIST_Y              36
+#define NO_CHEATS_FOUND_LABEL_X     20
+#define NO_CHEATS_FOUND_LABEL_Y     36
+
+#define LIST_X                      16
+#define LIST_Y                      36
 
 CheatsBottomSheetView::CheatsBottomSheetView(std::unique_ptr<CheatsViewModel> viewModel,
     const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository,
     FocusManager* focusManager)
     : _viewModel(std::move(viewModel))
-    , _titleLabel(128, 16, 25, fontRepository->GetFont(FontType::Medium11))
+    , _titleLabel(64, 16, 25, fontRepository->GetFont(FontType::Medium11))
+    , _noCheatsFoundLabel(96, 16, 25, fontRepository->GetFont(FontType::Regular10))
     , _cheatListRecycler(std::make_unique<RecyclerView>(LIST_X, LIST_Y, 224, 124, RecyclerView::Mode::VerticalList))
     , _materialColorScheme(materialColorScheme)
     , _fontRepository(fontRepository)
     , _focusManager(focusManager)
 {
     _titleLabel.SetText(u"Cheats");
+    _noCheatsFoundLabel.SetText(u"No cheats found.");
     AddChildTail(&_titleLabel);
+    AddChildTail(&_noCheatsFoundLabel);
     AddChildTail(_cheatListRecycler.get());
 }
 
@@ -64,6 +70,7 @@ void CheatsBottomSheetView::InitVram(const VramContext& vramContext)
 void CheatsBottomSheetView::Update()
 {
     _titleLabel.SetPosition(TITLE_LABEL_X, _position.y + TITLE_LABEL_Y);
+    _noCheatsFoundLabel.SetPosition(NO_CHEATS_FOUND_LABEL_X, _position.y + NO_CHEATS_FOUND_LABEL_Y);
     _cheatListRecycler->SetPosition(LIST_X, _position.y + LIST_Y);
     if (_viewModel->GetState() == CheatsViewModel::State::DisplayCheats)
     {
@@ -119,6 +126,13 @@ void CheatsBottomSheetView::Draw(GraphicsContext& graphicsContext)
         _titleLabel.SetBackgroundColor(backColor);
         _titleLabel.SetForegroundColor(_materialColorScheme->onSurface);
         _titleLabel.Draw(graphicsContext);
+
+        if (_viewModel->GetState() == CheatsViewModel::State::NoCheats)
+        {
+            _noCheatsFoundLabel.SetBackgroundColor(backColor);
+            _noCheatsFoundLabel.SetForegroundColor(_materialColorScheme->onSurface);
+            _noCheatsFoundLabel.Draw(graphicsContext);
+        }
     }
     graphicsContext.SetPriority(oldPrio);
     graphicsContext.ResetClipArea();
