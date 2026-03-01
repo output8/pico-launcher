@@ -14,11 +14,11 @@
 
 CheatListItemView::CheatListItemView(const VramOffsets& vramOffsets,
     const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository)
-    : _nameLabel(200, 16, 64, fontRepository->GetFont(FontType::Regular10))
+    : _nameLabel(196, 16, 256, fontRepository->GetFont(FontType::Regular10))
     , _vramOffsets(vramOffsets)
     , _materialColorScheme(materialColorScheme)
 {
-    _nameLabel.SetEllipsis(true);
+    _nameLabel.SetEllipsisStyle(LabelView::EllipsisStyle::Ellipsis);
     AddChildTail(&_nameLabel);
 }
 
@@ -30,6 +30,14 @@ void CheatListItemView::Update()
         _iconVramOffset = _cheat->GetIsCheatActive()
             ? _vramOffsets.checkboxCheckedIconVramOffset
             : _vramOffsets.checkboxUncheckedIconVramOffset;
+    }
+    if (IsFocused())
+    {
+        _nameLabel.SetEllipsisStyle(LabelView::EllipsisStyle::Marquee);
+    }
+    else
+    {
+        _nameLabel.SetEllipsisStyle(LabelView::EllipsisStyle::Ellipsis);
     }
     ViewContainer::Update();
 }
