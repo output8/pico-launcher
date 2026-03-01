@@ -6,13 +6,13 @@
 CheatsViewModel::CheatsViewModel(const FileInfo& romFileInfo, IRomBrowserController* romBrowserController)
     : _romFileInfo(romFileInfo), _romBrowserController(romBrowserController)
 {
-    _categoryStack.fill(nullptr);
+    _categoryStack.fill({ nullptr, 0 });
     _loadCheatsTask = _romBrowserController->GetIoTaskQueue()->Enqueue([this] (const vu8& cancelRequested)
     {
         _cheats = _romBrowserController->GetCheatRepository().GetCheatsForGame(_romFileInfo.GetFastFileRef());
         if (_cheats)
         {
-            _categoryStack[0] = _cheats.get();
+            _categoryStack[0] = { _cheats.get(), 0 };
             _state = State::DisplayCheats;
         }
         else
@@ -37,7 +37,8 @@ void CheatsViewModel::ItemActivated()
         // Category activated
         if (_categoryStackLevel + 1 != _categoryStack.size())
         {
-            _categoryStack[++_categoryStackLevel] = &categories[_selectedItem];
+            _categoryStack[++_categoryStackLevel] = { &categories[_selectedItem], (u32)_selectedItem };
+            _selectedItem = 0;
         }
     }
     else
@@ -65,7 +66,8 @@ void CheatsViewModel::Back()
     }
     else
     {
-        _categoryStack[_categoryStackLevel--] = nullptr;
+        _selectedItem = _categoryStack[_categoryStackLevel].index;
+        _categoryStack[_categoryStackLevel--] = { nullptr, 0 };
     }
 }
 

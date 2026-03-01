@@ -175,8 +175,9 @@ bool CheatsBottomSheetView::HandleInput(const InputProvider& inputProvider, Focu
 void CheatsBottomSheetView::UpdateCheatList()
 {
     auto oldAdapter = _cheatsAdapter;
-    _cheatsAdapter = new CheatsAdapter(_viewModel->GetCurrentCheatCategory(), _materialColorScheme, _fontRepository, _vramOffsets);
-    _cheatListRecycler->SetAdapter(_cheatsAdapter);
+    _cheatsAdapter = new CheatsAdapter(
+        _viewModel->GetCurrentCheatCategory(), _materialColorScheme, _fontRepository, _vramOffsets);
+    _cheatListRecycler->SetAdapter(_cheatsAdapter, _viewModel->GetSelectedItem());
     delete oldAdapter;
 
     // Ugly hack

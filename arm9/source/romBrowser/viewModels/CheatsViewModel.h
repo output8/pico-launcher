@@ -24,12 +24,18 @@ public:
     void Close();
 
     State GetState() const { return _state; }
-    const ICheatCategory* GetCurrentCheatCategory() const { return _categoryStack[_categoryStackLevel]; }
+    const ICheatCategory* GetCurrentCheatCategory() const { return _categoryStack[_categoryStackLevel].cheatCategory; }
 
     constexpr int GetSelectedItem() const { return _selectedItem; }
     void SetSelectedItem(int selectedItem) { _selectedItem = selectedItem; }
 
 private:
+    struct CategoryStackEntry
+    {
+        const ICheatCategory* cheatCategory;
+        u32 index;
+    };
+
     FileInfo _romFileInfo;
     IRomBrowserController* _romBrowserController;
     QueueTask<void> _loadCheatsTask;
@@ -38,5 +44,5 @@ private:
     int _selectedItem = -1;
     bool _changed = false;
     u32 _categoryStackLevel = 0;
-    std::array<const ICheatCategory*, 8> _categoryStack;
+    std::array<CategoryStackEntry, 8> _categoryStack;
 };
