@@ -86,3 +86,29 @@ void CheatsViewModel::Close()
 
     _romBrowserController->HideGameInfo();
 }
+
+void CheatsViewModel::DisableAllCheats()
+{
+    DisableAllCheats(_cheats.get());
+}
+
+void CheatsViewModel::DisableAllCheats(const ICheatCategory* cheatCategory)
+{
+    u32 numberOfCategories = 0;
+    auto categories = cheatCategory->GetCategories(numberOfCategories);
+    for (u32 i = 0; i < numberOfCategories; i++)
+    {
+        DisableAllCheats(&categories[i]);
+    }
+
+    u32 numberOfCheats = 0;
+    auto cheats = cheatCategory->GetCheats(numberOfCheats);
+    for (u32 i = 0; i < numberOfCheats; i++)
+    {
+        if (cheats[i].GetIsCheatActive())
+        {
+            cheats[i].SetIsCheatActive(false);
+            _changed = true;
+        }
+    }
+}

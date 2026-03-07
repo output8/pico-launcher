@@ -25,7 +25,7 @@
 #define LIST_X                      16
 #define LIST_Y                      36
 #define LIST_WIDTH                  224
-#define LIST_HEIGHT                 /*124*/108
+#define LIST_HEIGHT                 108
 
 CheatsBottomSheetView::CheatsBottomSheetView(std::unique_ptr<CheatsViewModel> viewModel,
     const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository,
@@ -212,6 +212,11 @@ bool CheatsBottomSheetView::HandleInput(const InputProvider& inputProvider, Focu
     else if (inputProvider.Triggered(InputKey::Y))
     {
         _viewModel->Close();
+        return true;
+    }
+    else if (inputProvider.Triggered(InputKey::X))
+    {
+        _viewModel->DisableAllCheats();
         return true;
     }
     return false;
