@@ -12,7 +12,7 @@ class IRomBrowserViewFactory;
 class RomBrowserTopScreenView : public ViewContainer
 {
 public:
-    RomBrowserTopScreenView(const SharedPtr<RomBrowserViewModel>& viewModel,
+    RomBrowserTopScreenView(SharedPtr<RomBrowserViewModel> viewModel,
         const RomBrowserDisplayMode* displayMode,
         const IThemeFileIconFactory* themeFileIconFactory,
         const IRomBrowserViewFactory* romBrowserViewFactory);

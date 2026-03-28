@@ -19,14 +19,14 @@ public:
     void Update() override;
     void Draw(GraphicsContext& graphicsContext) override;
     bool HandleInput(const InputProvider& inputProvider, FocusManager& focusManager) override;
-    View* MoveFocus(View* currentFocus,
+    SharedPtr<View> MoveFocus(const SharedPtr<View>& currentFocus,
         FocusMoveDirection direction, View* source) override;
 
     void SetGraphics(const IconButton2DView::VramToken& iconButtonVramToken);
 
     void Focus(FocusManager& focusManager) override
     {
-        focusManager.Focus(&_layoutOptions[0]);
+        focusManager.Focus(_layoutOptions[0]);
     }
 
 private:
@@ -37,14 +37,14 @@ private:
     Label2DView _sortingLabel;
     // LabelView _filtersLabel;
 
-    std::array<IconButton2DView, 4> _layoutOptions;
-    std::array<IconButton2DView, /*3*/2> _sortOptions;
+    std::array<SharedPtr<IconButton2DView>, 4> _layoutOptions;
+    std::array<SharedPtr<IconButton2DView>, /*3*/2> _sortOptions;
     // std::array<IconButton2DView, 5> _filterOptions;
 
     const MaterialColorScheme* _materialColorScheme;
 
-    IconButton2DView CreateLayoutOptionIconButton();
-    IconButton2DView CreateSortOptionIconButton();
+    SharedPtr<IconButton2DView> CreateLayoutOptionIconButton();
+    SharedPtr<IconButton2DView> CreateSortOptionIconButton();
     // IconButton2DView CreateFilterOptionIconButton();
 
     void UpdateLabels();

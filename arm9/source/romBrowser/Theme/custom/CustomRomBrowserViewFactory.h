@@ -21,15 +21,15 @@ public:
         const IFontRepository* fontRepository)
         : _customThemeInfo(customThemeInfo), _materialColorScheme(materialColorScheme), _fontRepository(fontRepository) { }
 
-    IconGridItemView* CreateIconGridItemView() const override
+    SharedPtr<IconGridItemView> CreateIconGridItemView() const override
     {
-        return new CustomIconGridItemView(_customThemeInfo, _gridCellTexVramOffset, _gridCellPlttVramOffset,
+        return SharedPtr<CustomIconGridItemView>::MakeShared(_customThemeInfo, _gridCellTexVramOffset, _gridCellPlttVramOffset,
             _gridCellSelectedTexVramOffset, _gridCellSelectedPlttVramOffset);
     }
 
-    BannerListItemView* CreateBannerListItemView(VBlankTextureLoader* vblankTextureLoader) const override
+    SharedPtr<BannerListItemView> CreateBannerListItemView(VBlankTextureLoader* vblankTextureLoader) const override
     {
-        return new CustomBannerListItemView(_customThemeInfo, _materialColorScheme, _fontRepository,
+        return SharedPtr<CustomBannerListItemView>::MakeShared(_customThemeInfo, _materialColorScheme, _fontRepository,
             _bannerListCellTexVramOffset, _bannerListCellPlttVramOffset,
             _bannerListCellSelectedTexVramOffset, _bannerListCellSelectedPlttVramOffset, vblankTextureLoader);
     }
@@ -51,16 +51,16 @@ public:
         return std::make_unique<CustomFileInfoView>(_customThemeInfo, _fontRepository);
     }
 
-    std::unique_ptr<RecyclerViewBase> CreateCoverFlowRecyclerView() const override
+    SharedPtr<RecyclerViewBase> CreateCoverFlowRecyclerView() const override
     {
-        return std::make_unique<CoverFlowRecyclerView>();
+        return CoverFlowRecyclerView::CreateShared();
     }
 
-    FileRecyclerAdapter* CreateCoverFlowRecyclerAdapter(
+    SharedPtr<FileRecyclerAdapter> CreateCoverFlowRecyclerAdapter(
         RomBrowserViewModel* viewModel, const IThemeFileIconFactory* themeFileIconFactory,
         VBlankTextureLoader* vblankTextureLoader) const override
     {
-        return new CoverFlowFileRecyclerAdapter(
+        return SharedPtr<CoverFlowFileRecyclerAdapter>::MakeShared(
             &viewModel->GetFileInfoManager(), viewModel->GetIoTaskQueue(),
             themeFileIconFactory, this, vblankTextureLoader, &viewModel->GetCoverRepository());
     }

@@ -28,7 +28,6 @@
 #include "romBrowser/RomBrowserController.h"
 #include "DialogPresenter.h"
 #include "themes/ITheme.h"
-#include "core/SharedPtr.h"
 #include "animation/Animator.h"
 
 class alignas(32) App : public IProcess

@@ -70,13 +70,13 @@ DisplaySettingsBottomSheetView::DisplaySettingsBottomSheetView(
     for (auto& layoutOption : _layoutOptions)
     {
         layoutOption = CreateLayoutOptionIconButton();
-        AddChildTail(&layoutOption);
+        AddChildTail(layoutOption.GetPointer());
     }
 
     for (auto& sortOption : _sortOptions)
     {
         sortOption = CreateSortOptionIconButton();
-        AddChildTail(&sortOption);
+        AddChildTail(sortOption.GetPointer());
     }
 
     // for (auto& filterOption : _filterOptions)
@@ -88,38 +88,48 @@ DisplaySettingsBottomSheetView::DisplaySettingsBottomSheetView(
     // _filterOptions[0].SetState(IconButtonView::State::ToggleSelected);
 }
 
-IconButton2DView DisplaySettingsBottomSheetView::CreateLayoutOptionIconButton()
+SharedPtr<IconButton2DView> DisplaySettingsBottomSheetView::CreateLayoutOptionIconButton()
 {
-    IconButton2DView layoutOption
-    {
+    auto layoutOption = SharedPtr<IconButton2DView>::MakeShared(
         IconButtonView::Type::Tonal,
         IconButtonView::State::ToggleUnselected,
         md::sys::color::surfaceContainerLow,
         _materialColorScheme
-    };
-    layoutOption.SetAction([] (IconButtonView* sender, void* arg)
+    );
+    layoutOption->SetAction([] (IconButtonView* sender, void* arg)
     {
         auto self = reinterpret_cast<DisplaySettingsBottomSheetView*>(arg);
-        u32 idx = ((IconButton2DView*)sender) - &self->_layoutOptions[0];
-        self->_viewModel->SetRomBrowserDisplayMode(sRomBrowserDisplayModes[idx]);
+        for (u32 i = 0; i < self->_layoutOptions.size(); i++)
+        {
+            if (self->_layoutOptions[i].GetPointer() == sender)
+            {
+                self->_viewModel->SetRomBrowserDisplayMode(sRomBrowserDisplayModes[i]);
+                break;
+            }
+        }
     }, this);
     return layoutOption;
 }
 
-IconButton2DView DisplaySettingsBottomSheetView::CreateSortOptionIconButton()
+SharedPtr<IconButton2DView> DisplaySettingsBottomSheetView::CreateSortOptionIconButton()
 {
-    IconButton2DView sortOption
-    {
+    auto sortOption = SharedPtr<IconButton2DView>::MakeShared(
         IconButtonView::Type::Tonal,
         IconButtonView::State::ToggleUnselected,
         md::sys::color::surfaceContainerLow,
         _materialColorScheme
-    };
-    sortOption.SetAction([] (IconButtonView* sender, void* arg)
+    );
+    sortOption->SetAction([] (IconButtonView* sender, void* arg)
     {
         auto self = reinterpret_cast<DisplaySettingsBottomSheetView*>(arg);
-        u32 idx = ((IconButton2DView*)sender) - &self->_sortOptions[0];
-        self->_viewModel->SetRomBrowserSortMode(sRomBrowserSortModes[idx]);
+        for (u32 i = 0; i < self->_sortOptions.size(); i++)
+        {
+            if (self->_sortOptions[i].GetPointer() == sender)
+            {
+                self->_viewModel->SetRomBrowserSortMode(sRomBrowserSortModes[i]);
+                break;
+            }
+        }
     }, this);
     return sortOption;
 }
@@ -144,14 +154,14 @@ void DisplaySettingsBottomSheetView::InitVram(const VramContext& vramContext)
     if (objVramManager)
     {
         // layout options
-        _layoutOptions[0].SetIconVramOffset(LoadIcon(*objVramManager, hGridIconTiles, hGridIconTilesLen));
-        _layoutOptions[1].SetIconVramOffset(LoadIcon(*objVramManager, vGridIconTiles, vGridIconTilesLen));
-        _layoutOptions[2].SetIconVramOffset(LoadIcon(*objVramManager, bannerListIconTiles, bannerListIconTilesLen));
-        _layoutOptions[3].SetIconVramOffset(LoadIcon(*objVramManager, coverflowIconTiles, coverflowIconTilesLen));
+        _layoutOptions[0]->SetIconVramOffset(LoadIcon(*objVramManager, hGridIconTiles, hGridIconTilesLen));
+        _layoutOptions[1]->SetIconVramOffset(LoadIcon(*objVramManager, vGridIconTiles, vGridIconTilesLen));
+        _layoutOptions[2]->SetIconVramOffset(LoadIcon(*objVramManager, bannerListIconTiles, bannerListIconTilesLen));
+        _layoutOptions[3]->SetIconVramOffset(LoadIcon(*objVramManager, coverflowIconTiles, coverflowIconTilesLen));
 
         // sort options
-        _sortOptions[0].SetIconVramOffset(LoadIcon(*objVramManager, sortNameAscendingIconTiles, sortNameAscendingIconTilesLen));
-        _sortOptions[1].SetIconVramOffset(LoadIcon(*objVramManager, sortNameDescendingIconTiles, sortNameDescendingIconTilesLen));
+        _sortOptions[0]->SetIconVramOffset(LoadIcon(*objVramManager, sortNameAscendingIconTiles, sortNameAscendingIconTilesLen));
+        _sortOptions[1]->SetIconVramOffset(LoadIcon(*objVramManager, sortNameDescendingIconTiles, sortNameDescendingIconTilesLen));
         // _sortOptions[2].SetIconVramOffset(LoadIcon(objVramManager, recentIconTiles, recentIconTilesLen));
 
         // filter options
@@ -180,8 +190,8 @@ void DisplaySettingsBottomSheetView::Update()
     u32 idx = 0;
     for (auto& layoutOption : _layoutOptions)
     {
-        layoutOption.SetPosition(x, _position.y + 38);
-        layoutOption.SetState(sRomBrowserDisplayModes[idx] == selectedDisplayMode
+        layoutOption->SetPosition(x, _position.y + 38);
+        layoutOption->SetState(sRomBrowserDisplayModes[idx] == selectedDisplayMode
             ? IconButtonView::State::ToggleSelected
             : IconButtonView::State::ToggleUnselected);
         x += 32;
@@ -192,8 +202,8 @@ void DisplaySettingsBottomSheetView::Update()
     idx = 0;
     for (auto& sortOption : _sortOptions)
     {
-        sortOption.SetPosition(x, _position.y + 70);
-        sortOption.SetState(sRomBrowserSortModes[idx] == selectedSortMode
+        sortOption->SetPosition(x, _position.y + 70);
+        sortOption->SetState(sRomBrowserSortModes[idx] == selectedSortMode
             ? IconButtonView::State::ToggleSelected
             : IconButtonView::State::ToggleUnselected);
         x += 32;
@@ -237,25 +247,25 @@ bool DisplaySettingsBottomSheetView::HandleInput(
     return false;
 }
 
-View* DisplaySettingsBottomSheetView::MoveFocus(View* currentFocus,
+SharedPtr<View> DisplaySettingsBottomSheetView::MoveFocus(const SharedPtr<View>& currentFocus,
     FocusMoveDirection direction, View* source)
 {
     int idx = 0;
     for (auto& layoutOption : _layoutOptions)
     {
-        if (currentFocus == &layoutOption)
+        if (currentFocus.GetPointer() == layoutOption.GetPointer())
         {
             if (direction == FocusMoveDirection::Left)
             {
                 if (--idx < 0)
                     idx += _layoutOptions.size();
-                return &_layoutOptions[idx];
+                return _layoutOptions[idx];
             }
             else if (direction == FocusMoveDirection::Right)
             {
                 if (++idx >= (int)_layoutOptions.size())
                     idx = 0;
-                return &_layoutOptions[idx];
+                return _layoutOptions[idx];
             }
             // else if (direction == FocusMoveDirection::Up)
             // {
@@ -267,7 +277,7 @@ View* DisplaySettingsBottomSheetView::MoveFocus(View* currentFocus,
             {
                 if (idx >= (int)_sortOptions.size())
                     idx = _sortOptions.size() - 1;
-                return &_sortOptions[idx];
+                return _sortOptions[idx];
             }
         }
         idx++;
@@ -275,25 +285,25 @@ View* DisplaySettingsBottomSheetView::MoveFocus(View* currentFocus,
     idx = 0;
     for (auto& sortOption : _sortOptions)
     {
-        if (currentFocus == &sortOption)
+        if (currentFocus.GetPointer() == sortOption.GetPointer())
         {
             if (direction == FocusMoveDirection::Left)
             {
                 if (--idx < 0)
                     idx += _sortOptions.size();
-                return &_sortOptions[idx];
+                return _sortOptions[idx];
             }
             else if (direction == FocusMoveDirection::Right)
             {
                 if (++idx >= (int)_sortOptions.size())
                     idx = 0;
-                return &_sortOptions[idx];
+                return _sortOptions[idx];
             }
             else //if (direction == FocusMoveDirection::Up)
             {
                 if (idx >= (int)_layoutOptions.size())
                     idx = _layoutOptions.size() - 1;
-                return &_layoutOptions[idx];
+                return _layoutOptions[idx];
             }
             // else //if (direction == FocusMoveDirection::Down)
             // {
@@ -343,9 +353,13 @@ void DisplaySettingsBottomSheetView::SetGraphics(
     const IconButton2DView::VramToken& iconButtonVramToken)
 {
     for (auto& layoutOption : _layoutOptions)
-        layoutOption.SetGraphics(iconButtonVramToken);
+    {
+        layoutOption->SetGraphics(iconButtonVramToken);
+    }
     for (auto& sortOption : _sortOptions)
-        sortOption.SetGraphics(iconButtonVramToken);
+    {
+        sortOption->SetGraphics(iconButtonVramToken);
+    }
     // for (auto& filterOption : _filterOptions)
     //     filterOption.SetGraphics(iconButtonVramToken);
 }

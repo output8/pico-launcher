@@ -12,11 +12,11 @@
 #include "RomBrowserTopScreenView.h"
 
 RomBrowserTopScreenView::RomBrowserTopScreenView(
-    const SharedPtr<RomBrowserViewModel>& viewModel,
+    SharedPtr<RomBrowserViewModel> viewModel,
     const RomBrowserDisplayMode* displayMode,
     const IThemeFileIconFactory* themeFileIconFactory,
     const IRomBrowserViewFactory* romBrowserViewFactory)
-    : _viewModel(viewModel)
+    : _viewModel(std::move(viewModel))
     , _themeFileIconFactory(themeFileIconFactory)
     , _fileInfoView(romBrowserViewFactory->CreateFileInfoView())
     , _showCover(displayMode->ShowCoverOnTopScreen())
