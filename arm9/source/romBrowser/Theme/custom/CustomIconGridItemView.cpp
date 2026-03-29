@@ -5,6 +5,7 @@
 #include "gui/OamBuilder.h"
 #include "gui/IVramManager.h"
 #include "gui/GraphicsContext.h"
+#include "themes/custom/CustomThemeInfo.h"
 #include "CustomIconGridItemView.h"
 
 #define X_OFFSET    (-2)
@@ -48,6 +49,6 @@ void CustomIconGridItemView::Draw(GraphicsContext& graphicsContext)
     if (_icon)
     {
         _icon->SetPosition(6 + _position.x, 6 + _position.y);
-        _icon->Draw(graphicsContext, Rgb<8, 8, 8>(200, 200, 200));
+        _icon->Draw(graphicsContext, _customThemeInfo->gridIconInfo.GetBlendColor());
     }
 }

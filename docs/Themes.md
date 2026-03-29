@@ -53,5 +53,75 @@ These files can be created, for example, using [NitroPaint](https://github.com/G
 
 The top screen background should include a box in which the banner text and icon of the selected item will be shown.
 
+### Additional JSON properties
+Custom themes support additional properties in the `theme.json` file to allow for more customization.
+
+- **topIcon** - Properties of the icon displayed on the top screen.
+- **topBannerTextLine0** - Properties of the first banner text line displayed on the top screen.
+- **topBannerTextLine1** - Properties of the second banner text line displayed on the top screen.
+- **topBannerTextLine2** - Properties of the third banner text line displayed on the top screen.
+- **topFileNameText** - Properties of the file name text displayed on the top screen.
+- **gridIcon** - Properties of the icons displayed on the bottom screen in grid display modes.
+- **bannerListIcon** - Properties of the icons displayed on the bottom screen in banner list display mode.
+- **bannerListTextLine0** - Properties of the first banner text line displayed on the bottom screen in banner list display mode.
+- **bannerListTextLine1** - Properties of the second banner text line displayed on the bottom screen in banner list display mode.
+- **bannerListTextLine2** - Properties of the third banner text line displayed on the bottom screen in banner list display mode.
+
+Blend colors are used to fake translucency. They should be set to an approximation of the background color.
+
+```json
+{
+    "type": "custom",
+    "name": "Raspberry",
+    "description": "Theme based on raspberries.",
+    "author": "Gericom",
+    "primaryColor": { "r": 138, "g": 217, "b": 255 },
+    "darkTheme": false,
+    "topIcon": {
+        "position": { "x": 24, "y": 132 },
+        "blendColor": { "r": 200, "g": 200, "b": 200 }
+    },
+    "topBannerTextLine0": {
+        "position": { "x": 70, "y": 126 },
+        "width": 176,
+        "textColor": { "r": 30, "g": 30, "b": 30 },
+        "blendColor": { "r": 200, "g": 200, "b": 200 }
+    },
+    "topBannerTextLine1": {
+        "position": { "x": 70, "y": 141 },
+        "width": 176,
+        "textColor": { "r": 30, "g": 30, "b": 30 },
+        "blendColor": { "r": 200, "g": 200, "b": 200 }
+    },
+    "topBannerTextLine2": {
+        "position": { "x": 70, "y": 155 },
+        "width": 176,
+        "textColor": { "r": 30, "g": 30, "b": 30 },
+        "blendColor": { "r": 200, "g": 200, "b": 200 }
+    },
+    "topFileNameText": {
+        "position": { "x": 18, "y": 170 },
+        "width": 220,
+        "textColor": { "r": 30, "g": 30, "b": 30 },
+        "blendColor": { "r": 200, "g": 200, "b": 200 }
+    },
+    "gridIcon": {
+        "blendColor": { "r": 200, "g": 200, "b": 200 }
+    },
+    "bannerListIcon": {
+        "blendColor": { "r": 200, "g": 200, "b": 200 }
+    },
+    "bannerListTextLine0": {
+        "textColor": { "r": 30, "g": 30, "b": 30 }
+    },
+    "bannerListTextLine1": {
+        "textColor": { "r": 30, "g": 30, "b": 30 }
+    },
+    "bannerListTextLine2": {
+        "textColor": { "r": 30, "g": 30, "b": 30 }
+    }
+}
+```
+
 ## Background music
 All themes support background music by placing DSP-ADPCM encoded `.bcstm` files in a `bgm` folder inside the theme folder. Looping is supported. When multiple `.bcstm` files are provided, the background music will be selected at random each time Pico Launcher is started.
