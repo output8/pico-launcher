@@ -47,7 +47,6 @@ void CustomFileInfoView::Draw(GraphicsContext& graphicsContext)
 
     if (_icon)
     {
-        _icon->SetObjVramOffset(_iconVramOffset);
         _icon->Draw(graphicsContext, _backgroundColor);
     }
 }
