@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v1.2.0] - 29 Mar 2026
+
 ### Added
 - Support for cheats with Pico Loader API v3
 - Hide files/dirs with hidden attribute, or with a name starting with a period
