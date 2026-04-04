@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- Ability to set the position of the top screen cover image in custom themes
+
 ## [v1.2.0] - 29 Mar 2026
 
 ### Added

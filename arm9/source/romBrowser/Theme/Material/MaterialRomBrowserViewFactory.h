@@ -65,6 +65,11 @@ public:
             themeFileIconFactory, this, vblankTextureLoader, &viewModel->GetCoverRepository());
     }
 
+    Point GetTopCoverPosition() const override
+    {
+        return Point(75, 18);
+    }
+
 private:
     const MaterialColorScheme* _materialColorScheme;
     const IFontRepository* _fontRepository;

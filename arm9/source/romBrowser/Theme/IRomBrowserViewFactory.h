@@ -35,6 +35,8 @@ public:
     virtual FileRecyclerAdapter* CreateCoverFlowRecyclerAdapter(
         RomBrowserViewModel* viewModel, const IThemeFileIconFactory* themeFileIconFactory,
         VBlankTextureLoader* vblankTextureLoader) const = 0;
+
+    virtual Point GetTopCoverPosition() const = 0;
 };
 
 inline IRomBrowserViewFactory::~IRomBrowserViewFactory() { }

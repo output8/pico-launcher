@@ -36,4 +36,5 @@ private:
     bool _iconGraphicsUploaded = false;
     bool _coverGraphicsUploaded = false;
     bool _showCover;
+    Point _coverPosition;
 };

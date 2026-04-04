@@ -7,12 +7,12 @@
 #include "romBrowser/views/CoverFlowRecyclerView.h"
 #include "romBrowser/viewModels/RomBrowserViewModel.h"
 #include "romBrowser/DisplayMode/CoverFlowFileRecyclerAdapter.h"
+#include "themes/custom/CustomThemeInfo.h"
 
 class MaterialColorScheme;
 class ITheme;
 class VramContext;
 class IFontRepository;
-class CustomThemeInfo;
 
 class CustomRomBrowserViewFactory : public IRomBrowserViewFactory
 {
@@ -63,6 +63,11 @@ public:
         return new CoverFlowFileRecyclerAdapter(
             &viewModel->GetFileInfoManager(), viewModel->GetIoTaskQueue(),
             themeFileIconFactory, this, vblankTextureLoader, &viewModel->GetCoverRepository());
+    }
+
+    Point GetTopCoverPosition() const override
+    {
+        return _customThemeInfo->topCoverInfo.GetPosition();
     }
 
     void LoadResources(const ITheme& theme, const VramContext& mainVramContext);
