@@ -11,10 +11,9 @@ class IFontRepository;
 
 class DisplaySettingsBottomSheetView : public BottomSheetView
 {
-public:
-    DisplaySettingsBottomSheetView(DisplaySettingsViewModel* viewModel,
-        const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository);
+    SHARED_ONLY(DisplaySettingsBottomSheetView)
 
+public:
     void InitVram(const VramContext& vramContext) override;
     void Update() override;
     void Draw(GraphicsContext& graphicsContext) override;
@@ -29,12 +28,15 @@ public:
         focusManager.Focus(_layoutOptions[0]);
     }
 
+protected:
+    void Close() override;
+
 private:
     DisplaySettingsViewModel* _viewModel;
 
-    Label2DView _titleLabel;
-    Label2DView _layoutLabel;
-    Label2DView _sortingLabel;
+    SharedPtr<Label2DView> _titleLabel;
+    SharedPtr<Label2DView> _layoutLabel;
+    SharedPtr<Label2DView> _sortingLabel;
     // LabelView _filtersLabel;
 
     std::array<SharedPtr<IconButton2DView>, 4> _layoutOptions;
@@ -46,6 +48,9 @@ private:
     SharedPtr<IconButton2DView> CreateLayoutOptionIconButton();
     SharedPtr<IconButton2DView> CreateSortOptionIconButton();
     // IconButton2DView CreateFilterOptionIconButton();
+
+    DisplaySettingsBottomSheetView(DisplaySettingsViewModel* viewModel,
+        const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository);
 
     void UpdateLabels();
 
