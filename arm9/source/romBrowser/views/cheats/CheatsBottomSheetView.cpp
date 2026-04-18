@@ -128,7 +128,7 @@ void CheatsBottomSheetView::Update()
         else if (_currentCheatCategory != _viewModel->GetCurrentCheatCategory()
             && _viewModel->GetCurrentCheatCategory() != nullptr)
         {
-            // _secondaryLabel->SetText(_viewModel->GetCurrentCheatCategory()->GetName());
+            _secondaryLabel->SetText(_viewModel->GetCurrentCheatCategory()->GetName());
             UpdateCheatList();
         }
     }
@@ -221,6 +221,25 @@ void CheatsBottomSheetView::Draw(GraphicsContext& graphicsContext)
     }
     graphicsContext.SetPriority(oldPrio);
     graphicsContext.ResetClipArea();
+}
+
+SharedPtr<View> CheatsBottomSheetView::MoveFocus(const SharedPtr<View>& currentFocus, FocusMoveDirection direction, View* source)
+{
+    if (!currentFocus)
+    {
+        return nullptr;
+    }
+
+    if (source == _cheatListRecycler.GetPointer() && direction == FocusMoveDirection::Up && _viewModel->IsInSubCategory())
+    {
+        return _upButton;
+    }
+    else if (source == _upButton.GetPointer() && direction == FocusMoveDirection::Down)
+    {
+        return _cheatListRecycler->MoveFocus(currentFocus, direction, this);
+    }
+
+    return nullptr;
 }
 
 bool CheatsBottomSheetView::HandleInput(const InputProvider& inputProvider, FocusManager& focusManager)

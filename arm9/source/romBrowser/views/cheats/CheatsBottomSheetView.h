@@ -22,6 +22,7 @@ public:
     void InitVram(const VramContext& vramContext) override;
     void Update() override;
     void Draw(GraphicsContext& graphicsContext) override;
+    SharedPtr<View> MoveFocus(const SharedPtr<View>& currentFocus, FocusMoveDirection direction, View* source) override;
     bool HandleInput(const InputProvider& inputProvider, FocusManager& focusManager) override;
 
     void Focus(FocusManager& focusManager) override
