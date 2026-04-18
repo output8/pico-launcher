@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v1.3.0] - 18 Apr 2026
+
 ### Added
 - Ability to set the position of the top screen cover image in custom themes
 - Support for fast scrolling with the L and R buttons in coverflow display mode
