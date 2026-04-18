@@ -26,6 +26,9 @@
 #define DESCRIPTION_LABEL_X         16
 #define DESCRIPTION_LABEL_Y         147
 
+#define UP_BUTTON_X                 212
+#define UP_BUTTON_Y                 (TITLE_LABEL_Y - 7)
+
 #define LIST_X                      16
 #define LIST_Y                      36
 #define LIST_WIDTH                  224
@@ -109,7 +112,7 @@ void CheatsBottomSheetView::Update()
     }
     _descriptionLabel->SetPosition(DESCRIPTION_LABEL_X, _position.y + DESCRIPTION_LABEL_Y);
     _cheatListRecycler->SetPosition(LIST_X, _position.y + LIST_Y);
-    _upButton->SetPosition(212, _position.y + CATEGORY_NAME_LABEL_Y - 8);
+    _upButton->SetPosition(UP_BUTTON_X, _position.y + UP_BUTTON_Y);
     if (_viewModel->GetState() == CheatsViewModel::State::DisplayCheats)
     {
         if (!_cheatsAdapter && _objVramManager != nullptr)
