@@ -24,6 +24,7 @@ public:
     virtual void HideGameInfo() = 0;
     virtual void ShowDisplaySettings() = 0;
     virtual void HideDisplaySettings() = 0;
+    virtual void GotoSettingsScreen() = 0;
 
     virtual void Update() = 0;
 

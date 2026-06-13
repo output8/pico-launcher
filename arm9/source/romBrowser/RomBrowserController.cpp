@@ -2,6 +2,7 @@
 #include <array>
 #include "picoLoaderBootstrap.h"
 #include "PicoLoaderProcess.h"
+#include "settings/SettingsProcess.h"
 #include "FileType/ExtensionFileTypeProvider.h"
 #include "FileType/FileType.h"
 #include "SdFolderFactory.h"
@@ -58,6 +59,11 @@ void RomBrowserController::HideDisplaySettings()
         });
     }
     _stateMachine.Fire(RomBrowserStateTrigger::HideDisplaySettings);
+}
+
+void RomBrowserController::GotoSettingsScreen()
+{
+    _stateMachine.Fire(RomBrowserStateTrigger::GotoSettingsScreen);
 }
 
 void RomBrowserController::SetRomBrowserDisplaySettings(
@@ -126,6 +132,10 @@ void RomBrowserController::HandleTrigger()
 
         case RomBrowserStateTrigger::ChangeDisplayMode:
             HandleChangeDisplayModeTrigger();
+            break;
+
+        case RomBrowserStateTrigger::GotoSettingsScreen:
+            HandleGotoSettingsScreenTrigger();
             break;
 
         default:
@@ -211,6 +221,11 @@ void RomBrowserController::HandleChangeDisplayModeTrigger()
 {
     LOG_DEBUG("RomBrowserStateTrigger::ChangeDisplayMode\n");
     _romBrowserViewModel = SharedPtr<RomBrowserViewModel>::MakeShared(this);
+}
+
+void RomBrowserController::HandleGotoSettingsScreenTrigger()
+{
+    gProcessManager.Goto<SettingsProcess>();
 }
 
 void RomBrowserController::UpdateLastUsedFilepath()

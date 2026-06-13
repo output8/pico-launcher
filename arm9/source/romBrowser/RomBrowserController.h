@@ -30,6 +30,7 @@ public:
     void HideGameInfo() override;
     void ShowDisplaySettings() override;
     void HideDisplaySettings() override;
+    void GotoSettingsScreen() override;
 
     void Update() override;
 
@@ -80,6 +81,7 @@ private:
     void HandleFolderLoadDoneTrigger();
     void HandleLaunchTrigger();
     void HandleChangeDisplayModeTrigger();
+    void HandleGotoSettingsScreenTrigger();
     void UpdateLastUsedFilepath();
     void SetPicoLoaderParams() const;
     void LoadCheats() const;
