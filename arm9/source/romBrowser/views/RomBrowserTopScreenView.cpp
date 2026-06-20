@@ -124,7 +124,12 @@ void RomBrowserTopScreenView::VBlank()
         }
         _coverGraphicsUploaded = true;
     }
-    if (!_showCover || !_selectedFileCover.IsValid() || !_selectedFileCover->IsActualCover())
+    int x0 = std::clamp(_coverPosition.x, 0, 256);
+    int x1 = std::clamp(_coverPosition.x + 106, 0, 256);
+    int y0 = std::clamp(_coverPosition.y, 0, 192);
+    int y1 = std::clamp(_coverPosition.y + 96, 0, 192);
+    if (!_showCover || !_selectedFileCover.IsValid() || !_selectedFileCover->IsActualCover() ||
+        x0 >= x1 || y0 >= y1)
     {
         // hide cover
         REG_DISPCNT_SUB &= ~(((1 << 3) | (1 << 5)) << 8);
@@ -140,7 +145,7 @@ void RomBrowserTopScreenView::VBlank()
         REG_BG3Y_SUB = (96 + _coverPosition.y - 1) << 8;
         REG_BG3CNT_SUB = 0x0705;
         REG_DISPCNT_SUB |= ((1 << 3) | (1 << 5)) << 8;
-        gfx_setSubWindow0(_coverPosition.x, _coverPosition.y, _coverPosition.x + 106, _coverPosition.y + 96);
+        gfx_setSubWindow0(x0, y0, x1, y1);
         REG_WININ_SUB = 0x002A;
         REG_WINOUT_SUB = ~(1 << 3);
     }
