@@ -395,15 +395,23 @@ bool RomBrowserController::IsFavorite(const FileInfo& fileInfo) const
     char path[256];
     GetFileInfoPath(fileInfo, path, sizeof(path));
 
+    // Runs on the io task thread (via RomBrowserItemViewModel::SetIndex), while
+    // ToggleFavorite() can swap settings.favorites/numberOfFavorites on the main
+    // thread. Disabling IRQs for the whole scan keeps the count and array pointer
+    // paired across every iteration, not just any single read.
+    u32 irq = rtos_disableIrqs();
     const auto& settings = _appSettingsService->GetAppSettings();
+    bool found = false;
     for (u32 i = 0; i < settings.numberOfFavorites; i++)
     {
         if (strcmp(settings.favorites[i].GetString(), path) == 0)
         {
-            return true;
+            found = true;
+            break;
         }
     }
-    return false;
+    rtos_restoreIrqs(irq);
+    return found;
 }
 
 void RomBrowserController::ToggleFavorite(const FileInfo& fileInfo)

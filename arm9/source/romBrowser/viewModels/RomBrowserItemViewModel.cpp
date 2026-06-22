@@ -41,9 +41,19 @@ void RomBrowserItemViewModel::ToggleFavorite()
         if (item.GetFileType()->GetClassification() != FileTypeClassification::Folder)
         {
             _romBrowserController->ToggleFavorite(item);
-            _isFavorite.store(!_isFavorite.load(std::memory_order_relaxed), std::memory_order_release);
+            _isFavorite = !_isFavorite;
         }
     }
+}
+
+bool RomBrowserItemViewModel::IsFavorite() const
+{
+    // Every item in the favorites view is a favorite by definition, so the badge would be redundant noise.
+    if (strcmp(_romBrowserController->GetCurrentPath(), ":favorites") == 0)
+    {
+        return false;
+    }
+    return _isFavorite;
 }
 
 void RomBrowserItemViewModel::SetIndex(int index)
@@ -59,5 +69,5 @@ void RomBrowserItemViewModel::SetIndex(int index)
             isFavorite = _romBrowserController->IsFavorite(item);
         }
     }
-    _isFavorite.store(isFavorite, std::memory_order_release);
+    _isFavorite = isFavorite;
 }

@@ -1,5 +1,4 @@
 #pragma once
-#include <atomic>
 #include "IRomBrowserItemViewModel.h"
 
 class IRomBrowserController;
@@ -16,7 +15,7 @@ public:
 
     // Cached on SetIndex() (runs on _ioTaskQueue, same as icon loading) so Draw(),
     // which runs on the render thread every frame, never touches the SD card.
-    bool IsFavorite() const override { return _isFavorite.load(std::memory_order_acquire); }
+    bool IsFavorite() const override;
 
     void SetIndex(int index) override;
 
@@ -40,7 +39,7 @@ public:
 
 private:
     int _index = -1;
-    std::atomic<bool> _isFavorite { false };
+    volatile bool _isFavorite = false;
     QueueTask<void> _queueTask;
 
     IRomBrowserController* _romBrowserController;

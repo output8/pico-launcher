@@ -77,7 +77,7 @@ private:
     std::unique_ptr<String<char, 256>[]> _newFavoritesSurvivors;
     u32 _newFavoritesSurvivorCount = 0;
     bool _favoritesPruneNeeded = false;
-    bool _isAtRoot = false;
+    volatile bool _isAtRoot = false;
     std::unique_ptr<CoverRepository> _coverRepository;
     std::unique_ptr<IconRepository> _iconRepository;
     std::unique_ptr<BannerRepository> _bannerRepository;
