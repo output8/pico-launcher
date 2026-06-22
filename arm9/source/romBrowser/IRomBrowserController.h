@@ -19,9 +19,12 @@ public:
 
     virtual void NavigateUp() = 0;
     virtual void NavigateToPath(const TCHAR* name) = 0;
+    virtual bool IsAtRoot() const = 0;
     virtual void LaunchFile(const FileInfo& fileInfo) = 0;
     virtual void ShowGameInfo(const FileInfo& fileInfo) = 0;
     virtual void HideGameInfo() = 0;
+    virtual bool IsFavorite(const FileInfo& fileInfo) const = 0;
+    virtual void ToggleFavorite(const FileInfo& fileInfo) = 0;
     virtual void ShowDisplaySettings() = 0;
     virtual void HideDisplaySettings() = 0;
     virtual void GotoSettingsScreen() = 0;
@@ -29,6 +32,7 @@ public:
     virtual void Update() = 0;
 
     virtual const SdFolder& GetSdFolder() const = 0;
+    virtual const TCHAR* GetCurrentPath() const = 0;
 
     virtual const RomBrowserStateMachine& GetStateMachine() const = 0;
 

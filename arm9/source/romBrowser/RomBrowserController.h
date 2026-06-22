@@ -25,9 +25,12 @@ public:
     }
 
     void NavigateToPath(const TCHAR* name) override;
+    bool IsAtRoot() const override { return _isAtRoot; }
     void LaunchFile(const FileInfo& fileInfo) override;
     void ShowGameInfo(const FileInfo& fileInfo) override;
     void HideGameInfo() override;
+    bool IsFavorite(const FileInfo& fileInfo) const override;
+    void ToggleFavorite(const FileInfo& fileInfo) override;
     void ShowDisplaySettings() override;
     void HideDisplaySettings() override;
     void GotoSettingsScreen() override;
@@ -35,6 +38,7 @@ public:
     void Update() override;
 
     const SdFolder& GetSdFolder() const override { return *_sdFolder; }
+    const TCHAR* GetCurrentPath() const override { return _navigatePath; }
 
     const RomBrowserStateMachine& GetStateMachine() const override { return _stateMachine; }
 
@@ -70,6 +74,10 @@ private:
     FileInfo _triggerFileInfo;
     QueueTask<void> _navigateTask;
     bool _saveSettingsPending = false;
+    std::unique_ptr<String<char, 256>[]> _newFavoritesSurvivors;
+    u32 _newFavoritesSurvivorCount = 0;
+    bool _favoritesPruneNeeded = false;
+    bool _isAtRoot = false;
     std::unique_ptr<CoverRepository> _coverRepository;
     std::unique_ptr<IconRepository> _iconRepository;
     std::unique_ptr<BannerRepository> _bannerRepository;
@@ -82,6 +90,7 @@ private:
     void HandleLaunchTrigger();
     void HandleChangeDisplayModeTrigger();
     void HandleGotoSettingsScreenTrigger();
+    void GetFileInfoPath(const FileInfo& fileInfo, char* pathBuffer, u32 bufferSize) const;
     void UpdateLastUsedFilepath();
     void SetPicoLoaderParams() const;
     void LoadCheats() const;
