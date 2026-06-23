@@ -193,6 +193,13 @@ void RomBrowserController::HandleNavigateTrigger()
         _navigateFileName = nullptr;
         if (strcmp(_navigatePath, ":favorites") == 0)
         {
+            auto& settings = _appSettingsService->GetAppSettings();
+            if (strcmp(settings.lastUsedFilePath.GetString(), ":favorites") != 0)
+            {
+                settings.lastUsedFilePath = ":favorites";
+                _appSettingsService->Save();
+            }
+
             DIR dir;
             FATFS* fs = nullptr;
             if (f_opendir(&dir, "/") == FR_OK)
@@ -317,6 +324,9 @@ void RomBrowserController::HandleGotoSettingsScreenTrigger()
 
 void RomBrowserController::UpdateLastUsedFilepath()
 {
+    // _navigatePath is about to be overwritten with the launched file's path (needed by
+    // SetPicoLoaderParams() below), so capture whether we were browsing favorites first.
+    bool launchedFromFavorites = strcmp(_navigatePath, ":favorites") == 0;
     if (_triggerFileInfo.GetFullPath())
     {
         char dir[256];
@@ -346,7 +356,7 @@ void RomBrowserController::UpdateLastUsedFilepath()
         }
         strlcat(_navigatePath, _triggerFileInfo.GetFileName(), sizeof(_navigatePath));
     }
-    _appSettingsService->GetAppSettings().lastUsedFilePath = _navigatePath;
+    _appSettingsService->GetAppSettings().lastUsedFilePath = launchedFromFavorites ? ":favorites" : _navigatePath;
     _appSettingsService->Save();
 }
 
