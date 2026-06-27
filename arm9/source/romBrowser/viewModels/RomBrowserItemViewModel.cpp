@@ -40,8 +40,12 @@ void RomBrowserItemViewModel::ToggleFavorite()
         const auto& item = _romBrowserController->GetRomBrowserViewModel()->GetFileInfoManager().GetItem(_index);
         if (item.GetFileType()->GetClassification() != FileTypeClassification::Folder)
         {
+            bool inFavoritesView = strcmp(_romBrowserController->GetCurrentPath(), ":favorites") == 0;
             _romBrowserController->ToggleFavorite(item);
-            _isFavorite = !_isFavorite;
+            if (inFavoritesView)
+                _romBrowserController->NavigateToPath(":favorites");
+            else
+                _isFavorite = !_isFavorite;
         }
     }
 }
