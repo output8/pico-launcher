@@ -4,6 +4,7 @@
 #include "gui/views/View.h"
 #include "../FileType/FileIcon.h"
 #include "RomBrowserItemInputHandler.h"
+#include "FavoriteBadge.h"
 
 class MaterialColorScheme;
 class GraphicsContext;
@@ -20,19 +21,6 @@ public:
             : _vramOffset(0) { }
 
         explicit VramToken(u32 offset)
-            : _vramOffset(offset) { }
-
-        constexpr u32 GetVramOffset() const { return _vramOffset; }
-    };
-
-    class FavoriteBadgeVramToken
-    {
-        u32 _vramOffset;
-    public:
-        FavoriteBadgeVramToken()
-            : _vramOffset(0) { }
-
-        explicit FavoriteBadgeVramToken(u32 offset)
             : _vramOffset(offset) { }
 
         constexpr u32 GetVramOffset() const { return _vramOffset; }

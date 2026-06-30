@@ -29,6 +29,11 @@ public:
         _buttons[button]->SetDisabled(disabled);
     }
 
+    void SetButtonState(int button, IconButtonView::State state)
+    {
+        _buttons[button]->SetState(state);
+    }
+
     Rectangle GetBounds() const override;
     void Update() override;
     SharedPtr<View> MoveFocus(const SharedPtr<View>& currentFocus, FocusMoveDirection direction, View* source) override;

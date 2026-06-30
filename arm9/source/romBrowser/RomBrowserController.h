@@ -74,9 +74,6 @@ private:
     FileInfo _triggerFileInfo;
     QueueTask<void> _navigateTask;
     bool _saveSettingsPending = false;
-    std::unique_ptr<String<char, 256>[]> _newFavoritesSurvivors;
-    u32 _newFavoritesSurvivorCount = 0;
-    bool _favoritesPruneNeeded = false;
     volatile bool _isAtRoot = false;
     std::unique_ptr<CoverRepository> _coverRepository;
     std::unique_ptr<IconRepository> _iconRepository;
@@ -91,6 +88,7 @@ private:
     void HandleChangeDisplayModeTrigger();
     void HandleGotoSettingsScreenTrigger();
     void GetFileInfoPath(const FileInfo& fileInfo, char* pathBuffer, u32 bufferSize) const;
+    void ToggleFavoriteAtPath(const char* path);
     void UpdateLastUsedFilepath();
     void SetPicoLoaderParams() const;
     void LoadCheats() const;

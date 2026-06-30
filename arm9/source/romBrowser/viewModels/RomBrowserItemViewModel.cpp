@@ -52,11 +52,6 @@ void RomBrowserItemViewModel::ToggleFavorite()
 
 bool RomBrowserItemViewModel::IsFavorite() const
 {
-    // Every item in the favorites view is a favorite by definition, so the badge would be redundant noise.
-    if (strcmp(_romBrowserController->GetCurrentPath(), ":favorites") == 0)
-    {
-        return false;
-    }
     return _isFavorite;
 }
 
@@ -70,7 +65,12 @@ void RomBrowserItemViewModel::SetIndex(int index)
         const auto& item = _romBrowserController->GetRomBrowserViewModel()->GetFileInfoManager().GetItem(index);
         if (item.GetFileType()->GetClassification() != FileTypeClassification::Folder)
         {
-            isFavorite = _romBrowserController->IsFavorite(item);
+            // Every item in the favorites view is a favorite by definition, so the badge would be
+            // redundant noise. Checked here (on the IO thread, same as GetCurrentPath()'s writer)
+            // rather than live in IsFavorite() on the render thread, which would otherwise flicker
+            // true for a frame or two when _navigatePath gets overwritten mid-launch.
+            bool inFavoritesView = strcmp(_romBrowserController->GetCurrentPath(), ":favorites") == 0;
+            isFavorite = !inFavoritesView && _romBrowserController->IsFavorite(item);
         }
     }
     _isFavorite = isFavorite;

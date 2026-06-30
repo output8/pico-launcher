@@ -70,16 +70,9 @@ void BannerListItemView::HandlePenUp(const Point& lastTouchPoint, FocusManager& 
     _inputHandler.HandlePenUp(lastTouchPoint, focusManager);
 }
 
-BannerListItemView::FavoriteBadgeVramToken BannerListItemView::UploadFavoriteBadgeGraphics(const VramContext& vramContext)
+FavoriteBadgeVramToken BannerListItemView::UploadFavoriteBadgeGraphics(const VramContext& vramContext)
 {
-    const auto objVramManager = vramContext.GetObjVramManager();
-    u32 vramOffset = 0;
-    if (objVramManager)
-    {
-        vramOffset = objVramManager->Alloc(smallHeartIconFilledTilesLen);
-        dma_ntrCopy32(3, smallHeartIconFilledTiles, objVramManager->GetVramAddress(vramOffset), smallHeartIconFilledTilesLen);
-    }
-    return BannerListItemView::FavoriteBadgeVramToken(vramOffset);
+    return FavoriteBadge::UploadGraphics(vramContext);
 }
 
 void BannerListItemView::DrawFavoriteBadge(GraphicsContext& graphicsContext) const
@@ -93,13 +86,5 @@ void BannerListItemView::DrawFavoriteBadge(GraphicsContext& graphicsContext) con
     int badgeX = bounds.GetRight() - 16;
     int badgeY = bounds.GetBottom() - 16;
 
-    u32 paletteRow = graphicsContext.GetPaletteManager().AllocRow(
-        GradientPalette(Rgb<8, 8, 8>(255, 255, 255), Rgb<8, 8, 8>(229, 57, 53)),
-        badgeY, badgeY + 16);
-
-    gfx_oam_entry_t* oam = graphicsContext.GetOamManager().AllocOams(1);
-    OamBuilder::OamWithSize<16, 16>(badgeX, badgeY, _favoriteBadgeVramOffset >> 7)
-        .WithPalette16(paletteRow)
-        .WithPriority(graphicsContext.GetPriority())
-        .Build(oam[0]);
+    FavoriteBadge::Draw(graphicsContext, badgeX, badgeY, _favoriteBadgeVramOffset);
 }

@@ -26,7 +26,7 @@ public:
 private:
     const IRomBrowserViewFactory* _romBrowserViewFactory;
     BannerListItemView::VramToken _bannerListItemViewGraphics;
-    BannerListItemView::FavoriteBadgeVramToken _favoriteBadgeVramToken;
+    FavoriteBadgeVramToken _favoriteBadgeVramToken;
     VBlankTextureLoader* _vblankTextureLoader;
 
     TaskResult<void> BindView(SharedPtr<View> view, int index,

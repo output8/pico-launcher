@@ -1,4 +1,5 @@
 #pragma once
+#include <string.h>
 #include "../IRomBrowserController.h"
 
 /// @brief View model for the rom browser app bar
@@ -26,6 +27,11 @@ public:
     bool IsAtRoot() const
     {
         return _romBrowserController->IsAtRoot();
+    }
+
+    bool IsFavoritesView() const
+    {
+        return strcmp(_romBrowserController->GetCurrentPath(), ":favorites") == 0;
     }
 
     constexpr RomBrowserLayout GetRomBrowserLayout() const

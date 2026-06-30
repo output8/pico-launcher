@@ -232,16 +232,21 @@ void RomBrowserController::HandleNavigateTrigger()
             }
 
             _newSdFolder = std::make_unique<SdFolder>(fileInfos, count);
-            _newFavoritesSurvivors = std::move(survivors);
-            _newFavoritesSurvivorCount = survivorCount;
-            _favoritesPruneNeeded = (survivorCount != favoritesSnapshotCount);
+            if (survivorCount != favoritesSnapshotCount)
+            {
+                auto& settings = _appSettingsService->GetAppSettings();
+                u32 irq = rtos_disableIrqs();
+                settings.favorites = std::move(survivors);
+                settings.numberOfFavorites = survivorCount;
+                rtos_restoreIrqs(irq);
+                _appSettingsService->Save();
+            }
             // Pressing back from favorites always returns to the real folder browsed before
             // entering it, so it's never a meaningless action here regardless of that folder.
             _isAtRoot = false;
         }
         else
         {
-            _favoritesPruneNeeded = false;
             if (strcmp(_navigatePath, "/") != 0) // can't f_stat on root dir
             {
                 FILINFO fileInfo;
@@ -282,21 +287,6 @@ void RomBrowserController::HandleFolderLoadDoneTrigger()
     _romBrowserViewModel.Reset();
     _sdFolder = std::move(_newSdFolder);
     _romBrowserViewModel = SharedPtr<RomBrowserViewModel>::MakeShared(this, _navigateFileName);
-
-    if (_favoritesPruneNeeded)
-    {
-        _favoritesPruneNeeded = false;
-        auto& settings = _appSettingsService->GetAppSettings();
-        u32 irq = rtos_disableIrqs();
-        settings.favorites = std::move(_newFavoritesSurvivors);
-        settings.numberOfFavorites = _newFavoritesSurvivorCount;
-        rtos_restoreIrqs(irq);
-        _ioTaskQueue->Enqueue([this] (const vu8& cancelRequested)
-        {
-            _appSettingsService->Save();
-            return TaskResult<void>::Completed();
-        });
-    }
 }
 
 void RomBrowserController::HandleLaunchTrigger()
@@ -405,10 +395,11 @@ bool RomBrowserController::IsFavorite(const FileInfo& fileInfo) const
     char path[256];
     GetFileInfoPath(fileInfo, path, sizeof(path));
 
-    // Runs on the io task thread (via RomBrowserItemViewModel::SetIndex), while
-    // ToggleFavorite() can swap settings.favorites/numberOfFavorites on the main
-    // thread. Disabling IRQs for the whole scan keeps the count and array pointer
-    // paired across every iteration, not just any single read.
+    // Runs on the io task thread (via RomBrowserItemViewModel::SetIndex), same as every
+    // writer of settings.favorites/numberOfFavorites (ToggleFavorite(), the favorites-prune
+    // in HandleNavigateTrigger()) - so this is already serialized against those. IRQs are
+    // still disabled here as cheap insurance against the count and array pointer ever being
+    // observed unpaired, in case a future caller reads this from elsewhere.
     u32 irq = rtos_disableIrqs();
     const auto& settings = _appSettingsService->GetAppSettings();
     bool found = false;
@@ -426,9 +417,38 @@ bool RomBrowserController::IsFavorite(const FileInfo& fileInfo) const
 
 void RomBrowserController::ToggleFavorite(const FileInfo& fileInfo)
 {
-    char path[256];
-    GetFileInfoPath(fileInfo, path, sizeof(path));
+    if (fileInfo.GetFullPath())
+    {
+        // Items from the favorites view already carry their full path, so toggling them
+        // needs no filesystem call and can run directly on the calling thread. This also
+        // keeps it synchronous with the favorites-view "remove then refresh" flow in
+        // RomBrowserItemViewModel::ToggleFavorite(), which re-navigates right after.
+        ToggleFavoriteAtPath(fileInfo.GetFullPath());
+        _ioTaskQueue->Enqueue([this] (const vu8& cancelRequested)
+        {
+            _appSettingsService->Save();
+            return TaskResult<void>::Completed();
+        });
+        return;
+    }
 
+    // Regular browsed items have no stored path, so GetFileInfoPath() needs the current
+    // directory - which (like every other path resolution in this file) has to run on the
+    // io task thread, since the main thread could otherwise race a navigation's f_chdir()
+    // mid-task. FileInfo is copied since fileInfo may not outlive this call (mirrors
+    // LaunchFile()).
+    _ioTaskQueue->Enqueue([this, fileInfoCopy = FileInfo(fileInfo)] (const vu8& cancelRequested)
+    {
+        char path[256];
+        GetFileInfoPath(fileInfoCopy, path, sizeof(path));
+        ToggleFavoriteAtPath(path);
+        _appSettingsService->Save();
+        return TaskResult<void>::Completed();
+    });
+}
+
+void RomBrowserController::ToggleFavoriteAtPath(const char* path)
+{
     auto& settings = _appSettingsService->GetAppSettings();
     int foundIndex = -1;
     for (u32 i = 0; i < settings.numberOfFavorites; i++)
@@ -456,9 +476,6 @@ void RomBrowserController::ToggleFavorite(const FileInfo& fileInfo)
                 }
             }
         }
-        // RomBrowserItemViewModel::SetIndex() reads settings.favorites/numberOfFavorites
-        // from the io task thread; disabling IRQs makes this swap appear atomic to it,
-        // so it never observes a count from one array paired with the pointer of the other.
         u32 irq = rtos_disableIrqs();
         settings.favorites = std::move(newFavorites);
         settings.numberOfFavorites = newCount;
@@ -478,10 +495,4 @@ void RomBrowserController::ToggleFavorite(const FileInfo& fileInfo)
         settings.numberOfFavorites = newCount;
         rtos_restoreIrqs(irq);
     }
-
-    _ioTaskQueue->Enqueue([this] (const vu8& cancelRequested)
-    {
-        _appSettingsService->Save();
-        return TaskResult<void>::Completed();
-    });
 }

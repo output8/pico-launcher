@@ -40,6 +40,7 @@ private:
     RomBrowserAppBarViewModel* _viewModel;
     SharedPtr<AppBarView> _appBarView;
     bool _lastIsAtRoot = false;
+    bool _lastIsFavoritesView = false;
 
     RomBrowserAppBarView(
         RomBrowserAppBarViewModel* viewModel, const RomBrowserDisplayMode& displayMode,

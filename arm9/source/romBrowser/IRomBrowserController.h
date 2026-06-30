@@ -32,6 +32,11 @@ public:
     virtual void Update() = 0;
 
     virtual const SdFolder& GetSdFolder() const = 0;
+
+    /// @brief Returns the current directory path or virtual folder path (e.g. ":favorites").
+    /// @note This returns a pointer to a mutable buffer that is written from the IO task thread during
+    /// navigation. Reading it from the render thread is only safe for checking stable/known paths like
+    /// ":favorites" which are set from the main thread before the task starts.
     virtual const TCHAR* GetCurrentPath() const = 0;
 
     virtual const RomBrowserStateMachine& GetStateMachine() const = 0;

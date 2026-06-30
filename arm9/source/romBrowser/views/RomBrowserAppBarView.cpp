@@ -45,6 +45,14 @@ void RomBrowserAppBarView::Update()
         _lastIsAtRoot = isAtRoot;
         _appBarView->SetButtonDisabled(APP_BAR_BUTTON_BACK, isAtRoot);
     }
+    bool isFavoritesView = _viewModel->IsFavoritesView();
+    if (isFavoritesView != _lastIsFavoritesView)
+    {
+        _lastIsFavoritesView = isFavoritesView;
+        _appBarView->SetButtonState(APP_BAR_BUTTON_FAVORITE, isFavoritesView
+            ? IconButtonView::State::ToggleSelected
+            : IconButtonView::State::NoToggle);
+    }
     ViewContainer::Update();
 }
 
