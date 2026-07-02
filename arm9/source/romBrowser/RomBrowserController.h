@@ -89,6 +89,7 @@ private:
     void HandleGotoSettingsScreenTrigger();
     void GetFileInfoPath(const FileInfo& fileInfo, char* pathBuffer, u32 bufferSize) const;
     void ToggleFavoriteAtPath(const char* path);
+    void RemoveFavoriteAtPath(const char* path);
     void UpdateLastUsedFilepath();
     void SetPicoLoaderParams() const;
     void LoadCheats() const;

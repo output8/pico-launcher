@@ -21,7 +21,13 @@ public:
     {
         NoToggle,
         ToggleUnselected,
-        ToggleSelected
+        ToggleSelected,
+        // Dedicated "this toggle is on" look for the favorite button specifically - distinct
+        // from ToggleSelected/ToggleUnselected, which DisplaySettingsBottomSheetView's Tonal
+        // option toggles already use for their own "picked vs not" pair (colored vs muted
+        // capsule). Reusing either of those for the favorite button couples its look to an
+        // unrelated component's semantics.
+        ToggleActive
     };
 
     void SetIconVramOffset(u32 vramOffset) { _iconVramOffset = vramOffset; }

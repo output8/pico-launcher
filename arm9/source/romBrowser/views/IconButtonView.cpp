@@ -85,8 +85,14 @@ md::sys::color IconButtonView::GetCircleBackgroundColor() const
         }
         case Type::Tonal:
         {
+            // ToggleActive is only ever set by the favorite button - give it the same
+            // prominent look as Filled's "on" state rather than falling into the plain
+            // secondaryContainer capsule shared by NoToggle/ToggleSelected, so favoriting
+            // reads as active rather than just "not muted".
             if (_state == State::ToggleUnselected)
                 return md::sys::color::surfaceContainerHighest;
+            else if (_state == State::ToggleActive)
+                return md::sys::color::primary;
             else
                 return md::sys::color::secondaryContainer;
         }
@@ -109,7 +115,10 @@ md::sys::color IconButtonView::GetForegroundColor() const
     {
         case Type::Standard:
         {
-            if (_state == State::ToggleSelected)
+            // Only the favorite button uses ToggleActive/ToggleSelected on this type (its
+            // "active" state is mapped to ToggleActive - see RomBrowserAppBarView::Update()),
+            // so both need the accent color for the favorited/not-favorited distinction to show.
+            if (_state == State::ToggleSelected || _state == State::ToggleActive)
                 return md::sys::color::primary;
             else
                 return md::sys::color::onSurfaceVariant;
@@ -125,6 +134,8 @@ md::sys::color IconButtonView::GetForegroundColor() const
         {
             if (_state == State::ToggleUnselected)
                 return md::sys::color::onSurfaceVariant;
+            else if (_state == State::ToggleActive)
+                return md::sys::color::onPrimary;
             else
                 return md::sys::color::onSecondaryContainer;
         }

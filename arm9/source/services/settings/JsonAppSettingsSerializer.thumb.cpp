@@ -1,5 +1,6 @@
 #include "common.h"
 #include <memory>
+#include <libtwl/rtos/rtosIrq.h>
 #include "json/ArduinoJson.h"
 #include "AppSettings.h"
 #include "fat/File.h"
@@ -122,9 +123,51 @@ static void serializeFileAssociations(DynamicJsonDocument& json, const AppSettin
     }
 }
 
+// settings.favorites can be replaced (and the old buffer freed) by a writer running on
+// another thread at any time, so it's read the same way IsFavorite() does: never hold
+// rtos_disableIrqs() across a heap allocation, only across the actual array reads. Since the
+// count can change between sizing the snapshot and copying it, retry if it grew in between.
+static std::unique_ptr<String<char, 256>[]> snapshotFavorites(const AppSettings* appSettings, u32& outCount)
+{
+    for (;;)
+    {
+        u32 capacity;
+        {
+            u32 irq = rtos_disableIrqs();
+            capacity = appSettings->numberOfFavorites;
+            rtos_restoreIrqs(irq);
+        }
+
+        auto snapshot = std::make_unique_for_overwrite<String<char, 256>[]>(capacity);
+
+        u32 irq = rtos_disableIrqs();
+        outCount = appSettings->numberOfFavorites;
+        if (outCount > capacity)
+        {
+            rtos_restoreIrqs(irq);
+            continue;
+        }
+        for (u32 i = 0; i < outCount; i++)
+        {
+            snapshot[i] = appSettings->favorites[i];
+        }
+        rtos_restoreIrqs(irq);
+        return snapshot;
+    }
+}
+
 static std::unique_ptr<u8[]> writeJson(const AppSettings* appSettings, u32& length)
 {
-    DynamicJsonDocument json(JSON_RESERVED_SIZE);
+    u32 favoritesCount;
+    std::unique_ptr<String<char, 256>[]> favoritesSnapshot = snapshotFavorites(appSettings, favoritesCount);
+
+    // favorites are added to the document by reference (JsonArray::add(const char*) links
+    // rather than copies - see StringAdapter<const char*, void> in ArduinoJson.h), so only
+    // the per-element structural slot needs budgeting here, not the string bytes themselves.
+    size_t capacity = JSON_RESERVED_SIZE
+        + JSON_ARRAY_SIZE(favoritesCount)
+        + JSON_OBJECT_SIZE(appSettings->numberOfFileAssociations);
+    DynamicJsonDocument json(capacity);
     json[KEY_LANGUAGE] = appSettings->language.GetString();
     json[KEY_ROM_BROWSER_LAYOUT] = serializeRomBrowserLayout(appSettings->romBrowserDisplaySettings.layout);
     json[KEY_ROM_BROWSER_SORT_MODE] = serializeRomBrowserSortMode(appSettings->romBrowserDisplaySettings.sortMode);
@@ -133,9 +176,9 @@ static std::unique_ptr<u8[]> writeJson(const AppSettings* appSettings, u32& leng
     serializeFileAssociations(json, appSettings);
 
     JsonArray favoritesArray = json.createNestedArray(KEY_FAVORITES);
-    for (u32 i = 0; i < appSettings->numberOfFavorites; i++)
+    for (u32 i = 0; i < favoritesCount; i++)
     {
-        favoritesArray.add(appSettings->favorites[i].GetString());
+        favoritesArray.add(favoritesSnapshot[i].GetString());
     }
 
     u32 outputSize = measureJsonPretty(json);
@@ -203,28 +246,32 @@ static void readJson(AppSettings* appSettings, const JsonDocument& json)
     }
 }
 
-bool JsonAppSettingsSerializer::Deserialize(AppSettings* appSettings, const char* filePath) const
+DeserializeResult JsonAppSettingsSerializer::Deserialize(AppSettings* appSettings, const char* filePath) const
 {
     const auto file = std::make_unique<File>();
     if (file->Open(filePath, FA_READ | FA_OPEN_EXISTING) != FR_OK)
-        return false;
+        return DeserializeResult::NotFound;
 
     u32 fileSize = file->GetSize();
     if (fileSize == 0)
-        return false;
+        return DeserializeResult::Error;
 
     std::unique_ptr<u8[]> fileData(new(cache_align) u8[fileSize]);
     u8* fileDataPtr = fileData.get();
 
     u32 bytesRead = 0;
     if (file->Read(fileDataPtr, fileSize, bytesRead) != FR_OK)
-        return false;
+        return DeserializeResult::Error;
 
-    DynamicJsonDocument json(JSON_RESERVED_SIZE);
+    // fileDataPtr is a mutable u8* (not const), so ArduinoJson already parses it in place
+    // (zero-copy: it stores pointers into this buffer rather than duplicating strings), so
+    // the pool only needs to cover structural overhead, not the file's string content - this
+    // is comfortably covered by the file's own size plus a fixed floor for that overhead.
+    DynamicJsonDocument json(fileSize + JSON_RESERVED_SIZE);
     if (deserializeJson(json, fileDataPtr, fileSize) != DeserializationError::Ok)
-        return false;
+        return DeserializeResult::Error;
 
     readJson(appSettings, json);
 
-    return true;
+    return DeserializeResult::Success;
 }

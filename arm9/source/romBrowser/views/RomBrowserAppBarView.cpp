@@ -45,12 +45,15 @@ void RomBrowserAppBarView::Update()
         _lastIsAtRoot = isAtRoot;
         _appBarView->SetButtonDisabled(APP_BAR_BUTTON_BACK, isAtRoot);
     }
-    bool isFavoritesView = _viewModel->IsFavoritesView();
+    int isFavoritesView = _viewModel->IsFavoritesView() ? 1 : 0;
     if (isFavoritesView != _lastIsFavoritesView)
     {
         _lastIsFavoritesView = isFavoritesView;
+        // NoToggle for "not favorites" matches the Back/DisplaySettings buttons on both themes.
+        // ToggleActive is a state dedicated to this button (see IconButtonView::State) so its
+        // "favorited" look doesn't depend on borrowing a state meant for something else.
         _appBarView->SetButtonState(APP_BAR_BUTTON_FAVORITE, isFavoritesView
-            ? IconButtonView::State::ToggleSelected
+            ? IconButtonView::State::ToggleActive
             : IconButtonView::State::NoToggle);
     }
     ViewContainer::Update();

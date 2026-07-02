@@ -40,7 +40,11 @@ private:
     RomBrowserAppBarViewModel* _viewModel;
     SharedPtr<AppBarView> _appBarView;
     bool _lastIsAtRoot = false;
-    bool _lastIsFavoritesView = false;
+    // -1 (not 0/1) so the first Update() always sets the button's real state explicitly.
+    // If the app boots inside the favorites view, the button must switch to
+    // ToggleActive immediately - relying on the constructed default (NoToggle) would
+    // leave it looking like "not favorites" until the next state change.
+    int _lastIsFavoritesView = -1;
 
     RomBrowserAppBarView(
         RomBrowserAppBarViewModel* viewModel, const RomBrowserDisplayMode& displayMode,
