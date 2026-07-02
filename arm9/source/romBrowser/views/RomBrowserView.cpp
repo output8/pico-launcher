@@ -54,6 +54,8 @@ void RomBrowserView::Update()
     _fileRecyclerAdapter->SetIconFrameCounter(_viewModel->GetIconFrameCounter());
     if (_viewModel->GetFileInfoManager().GetItemCount() == 0)
     {
+        _viewModel->SetSelectedItem(-1);
+
         const char* currentPath = _viewModel->GetRomBrowserController()->GetCurrentPath();
         if (strcmp(currentPath, ":favorites") == 0)
         {
