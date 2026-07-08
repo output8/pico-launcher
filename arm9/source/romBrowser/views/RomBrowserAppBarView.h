@@ -45,6 +45,8 @@ private:
     // ToggleActive immediately - relying on the constructed default (NoToggle) would
     // leave it looking like "not favorites" until the next state change.
     int _lastIsFavoritesView = -1;
+    u32 _heartIconVramOffset = 0;
+    u32 _heartIconFilledVramOffset = 0;
 
     RomBrowserAppBarView(
         RomBrowserAppBarViewModel* viewModel, const RomBrowserDisplayMode& displayMode,
