@@ -5,7 +5,7 @@
 #include "gui/OamBuilder.h"
 #include "gui/palette/GradientPalette.h"
 #include "core/math/Rgb.h"
-#include "smallHeartIconFilled.h"
+#include "favoriteBadge.h"
 
 class FavoriteBadgeVramToken
 {
@@ -28,8 +28,8 @@ namespace FavoriteBadge
         u32 vramOffset = 0;
         if (objVramManager)
         {
-            vramOffset = objVramManager->Alloc(smallHeartIconFilledTilesLen);
-            dma_ntrCopy32(3, smallHeartIconFilledTiles, objVramManager->GetVramAddress(vramOffset), smallHeartIconFilledTilesLen);
+            vramOffset = objVramManager->Alloc(favoriteBadgeTilesLen);
+            dma_ntrCopy32(3, favoriteBadgeTiles, objVramManager->GetVramAddress(vramOffset), favoriteBadgeTilesLen);
         }
         return FavoriteBadgeVramToken(vramOffset);
     }
