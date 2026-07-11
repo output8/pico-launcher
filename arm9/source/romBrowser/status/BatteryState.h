@@ -3,14 +3,22 @@
 
 enum class BatteryIcon { Empty, Low, Medium, Charged, Full, Charging };
 
-inline bool IsWarning(BatteryIcon i)
+/// @brief Battery icon plus whether it should render in the warning (red) ink.
+/// @details GBATEK's own wording for the DSi's low-battery tiers is "one solid red bar" (0x3..0x6)
+/// and "one blinking red bar" (0x1..0x2) -- both explicitly red, confirmed against the physical
+/// power LED on real hardware (also red at the solid-bar tier). The solid-bar tier keeps the Low
+/// icon; everything at or below it (0x0..0x2, the practical floor -- see ResolveBatteryDisplay)
+/// shows the Empty icon instead, since it's the bottom of what's actually reachable before the
+/// console loses power.
+struct BatteryDisplay
 {
-    return i == BatteryIcon::Low || i == BatteryIcon::Empty;
-}
+    BatteryIcon icon;
+    bool warning;
+};
 
-inline BatteryIcon ResolveBatteryIcon(const StatusPayload& s)
+inline BatteryDisplay ResolveBatteryDisplay(const StatusPayload& s)
 {
-    if (s.flags & STATUS_FLAG_CHARGING) return BatteryIcon::Charging; // bolt overrides, even at full
+    if (s.flags & STATUS_FLAG_CHARGING) return { BatteryIcon::Charging, false }; // bolt overrides, even at full
 
     if (s.flags & STATUS_FLAG_HAS_FINE_LEVEL)
     {
@@ -19,13 +27,19 @@ inline BatteryIcon ResolveBatteryIcon(const StatusPayload& s)
         // Match the native menu by reserving the Full icon for 0xF itself rather than rounding
         // 0xD/0xE up to Full. The level is only meaningful when not charging - the charging branch
         // above already returns before we get here.
+        //
+        // 0x1 and 0x0 are GBATEK-documented but not treated as distinct tiers here: two real-hardware
+        // tests (once at ~1 poll/s, once at ~10 polls/s) never observed either value before the
+        // console lost power, so whatever cuts it off (likely the battery pack's own protection
+        // circuit) happens at or above 0x2. 0x2 and below are treated as one practical floor tier.
         u8 level = s.batteryLevel;
-        if (level >= 0x0F) return BatteryIcon::Full;     // 0xF
-        if (level >= 0x0B) return BatteryIcon::Charged;  // 0xB..0xE
-        if (level >= 0x07) return BatteryIcon::Medium;   // 0x7..0xA
-        if (level >= 0x01) return BatteryIcon::Low;      // 0x1..0x6
-        return BatteryIcon::Empty;                        // 0x0
+        if (level >= 0x0F) return { BatteryIcon::Full, false };     // 0xF
+        if (level >= 0x0B) return { BatteryIcon::Charged, false };  // 0xB..0xE
+        if (level >= 0x07) return { BatteryIcon::Medium, false };   // 0x7..0xA
+        if (level >= 0x03) return { BatteryIcon::Low, true };       // 0x3..0x6: solid red bar
+        return { BatteryIcon::Empty, true };                        // 0x0..0x2: practical floor
     }
-    // DS / DS-Lite binary: 1 = low
-    return s.batteryLevel ? BatteryIcon::Low : BatteryIcon::Full;
+    // DS / DS-Lite binary: 1 = low. No solid/blinking distinction is possible here (GBATEK only
+    // documents a single Power Good/Power Low bit), so it stays a warning like before.
+    return s.batteryLevel ? BatteryDisplay{ BatteryIcon::Low, true } : BatteryDisplay{ BatteryIcon::Full, false };
 }

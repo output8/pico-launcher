@@ -34,6 +34,7 @@ private:
     const MaterialColorScheme* _materialColorScheme;
     u32 _batteryVramOffsets[BatteryIconCount] = {};
     BatteryIcon _batteryIcon = BatteryIcon::Full;
+    bool _batteryWarning = false;
     char _lastClockText[ClockTextBufferSize] = "";
     bool _darkTheme;
 

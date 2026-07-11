@@ -19,7 +19,10 @@ public:
     const char* GetClockText() const { return _clockDisplay; }
 
     /// @brief Returns the current battery icon state.
-    BatteryIcon GetBatteryIcon() const { return _batteryIcon; }
+    BatteryIcon GetBatteryIcon() const { return _batteryDisplay.icon; }
+
+    /// @brief Returns whether the current battery state should render in the warning (red) ink.
+    bool GetBatteryWarning() const { return _batteryDisplay.warning; }
 
 private:
     static constexpr u32 STATUS_POLL_FRAMES = 60;   ///< Roughly 1s at 59.8Hz.
@@ -37,7 +40,7 @@ private:
     u8 _lastMinute = 0xFF;
     u32 _blinkCounter = 0;
     bool _showColon = true;
-    BatteryIcon _batteryIcon = BatteryIcon::Full;
+    BatteryDisplay _batteryDisplay { BatteryIcon::Full, false };
 
     StatusPayload _pendingPayload {};   ///< Raw payload handed off from the background thread.
     volatile bool _resultReady = false;

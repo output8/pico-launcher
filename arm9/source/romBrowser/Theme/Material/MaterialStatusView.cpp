@@ -71,6 +71,7 @@ void MaterialStatusView::Update()
     _viewModel->Update();
 
     _batteryIcon = _viewModel->GetBatteryIcon();
+    _batteryWarning = _viewModel->GetBatteryWarning();
 
     const char* clockText = _viewModel->GetClockText();
     if (strcmp(clockText, _lastClockText) != 0)
@@ -85,7 +86,7 @@ void MaterialStatusView::Update()
 void MaterialStatusView::Draw(GraphicsContext& graphicsContext)
 {
     const auto& background = _materialColorScheme->inverseOnSurface;
-    const Rgb<8, 8, 8> ink = IsWarning(_batteryIcon)
+    const Rgb<8, 8, 8> ink = _batteryWarning
         ? StatusWarningColor(_darkTheme)
         : _materialColorScheme->onSurface;
 
