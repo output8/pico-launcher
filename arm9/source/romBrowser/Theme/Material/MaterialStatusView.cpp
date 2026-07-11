@@ -12,7 +12,7 @@
 #include "batteryEmpty.h"
 #include "batteryLow.h"
 #include "batteryMedium.h"
-#include "batteryCharged.h"
+#include "batteryHigh.h"
 #include "batteryFull.h"
 #include "batteryCharging.h"
 #include "MaterialStatusView.h"
@@ -25,12 +25,12 @@ namespace
         u32 length;
     };
 
-    /// @brief Indexed by BatteryIcon (Empty, Low, Medium, Charged, Full, Charging).
+    /// @brief Indexed by BatteryIcon (Empty, Low, Medium, High, Full, Charging).
     const BatteryGraphic kBatteryGraphics[] = {
         { batteryEmptyTiles,    batteryEmptyTilesLen },
         { batteryLowTiles,      batteryLowTilesLen },
         { batteryMediumTiles,   batteryMediumTilesLen },
-        { batteryChargedTiles,  batteryChargedTilesLen },
+        { batteryHighTiles,     batteryHighTilesLen },
         { batteryFullTiles,     batteryFullTilesLen },
         { batteryChargingTiles, batteryChargingTilesLen },
     };
