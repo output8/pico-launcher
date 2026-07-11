@@ -123,7 +123,6 @@ static void initializeArm7()
     sys_setSoundPower(true);
 
     readUserSettings();
-    pmic_setPowerLedBlink(PMIC_CONTROL_POWER_LED_BLINK_NONE);
 
     sio_setGpioSiIrq(false);
     sio_setGpioMode(RCNT0_L_MODE_GPIO);
