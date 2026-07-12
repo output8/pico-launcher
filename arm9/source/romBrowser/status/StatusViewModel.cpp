@@ -47,7 +47,7 @@ void StatusViewModel::ApplyResult(const StatusPayload& s)
         FormatClock(_clockText, s.dateTime.time.hour, s.dateTime.time.minute, _clockFormat);
         RebuildClockDisplay();
     }
-    _batteryDisplay = ResolveBatteryDisplay(s);
+    _batteryIcon = ResolveBatteryIcon(s);
 }
 
 void StatusViewModel::RebuildClockDisplay()
