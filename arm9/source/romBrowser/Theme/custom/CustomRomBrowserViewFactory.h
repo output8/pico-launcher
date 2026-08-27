@@ -8,6 +8,7 @@
 #include "romBrowser/viewModels/RomBrowserViewModel.h"
 #include "romBrowser/DisplayMode/CoverFlowFileRecyclerAdapter.h"
 #include "themes/custom/CustomThemeInfo.h"
+#include "themes/material/MaterialStatusView.h"
 
 class MaterialColorScheme;
 class ITheme;
@@ -52,10 +53,9 @@ public:
         return CustomFileInfoView::CreateShared(_customThemeInfo, _fontRepository);
     }
 
-    // The clock + battery status overlay is a Material-only feature; custom themes render nothing.
     SharedPtr<View> CreateStatusView(StatusViewModel* viewModel) const override
     {
-        return nullptr;
+        return MaterialStatusView::CreateShared(viewModel, _materialColorScheme, _fontRepository);
     }
 
     SharedPtr<RecyclerViewBase> CreateCoverFlowRecyclerView() const override
