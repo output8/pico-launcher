@@ -8,7 +8,7 @@
 #include "romBrowser/viewModels/RomBrowserViewModel.h"
 #include "romBrowser/DisplayMode/CoverFlowFileRecyclerAdapter.h"
 #include "themes/custom/CustomThemeInfo.h"
-#include "themes/material/MaterialStatusView.h"
+#include "../Material/MaterialStatusView.h"
 
 class MaterialColorScheme;
 class ITheme;
